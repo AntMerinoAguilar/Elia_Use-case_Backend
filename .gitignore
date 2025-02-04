@@ -1,0 +1,62 @@
+# ===========================
+# 📦 Node.js - Dépendances
+# ===========================
+
+# Ignore le dossier node_modules où sont stockées les dépendances npm.
+node_modules/
+
+# Ignore le fichier .env qui contient des informations sensibles (ex: clés API, mots de passe).
+.env
+
+# Ignore package-lock.json (optionnel) pour éviter les conflits de version des dépendances.
+package-lock.json
+
+# Ignore .npmrc qui peut contenir des configurations locales spécifiques à npm.
+.npmrc
+
+
+# ===========================
+# 📝 Logs d'application
+# ===========================
+
+# Ignore le dossier logs/ où peuvent être stockés les fichiers de logs.
+logs/
+
+# Ignore tous les fichiers .log générés par l'application.
+*.log
+
+# Ignore les fichiers de logs créés en cas d’erreurs avec npm ou yarn.
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# ===========================
+# 🔄 Fichiers de processus
+# ===========================
+
+# Ignore le dossier pids/ qui stocke des fichiers de processus en cours.
+pids/
+
+# Ignore les fichiers .pid (process IDs) utilisés par certains gestionnaires de processus.
+*.pid
+
+# Ignore les fichiers .seed qui peuvent être utilisés pour préremplir la base de données.
+*.seed
+
+
+# ===========================
+# 💻 Fichiers système & IDE
+# ===========================
+
+# Ignore .DS_Store (fichier généré automatiquement par macOS pour stocker des métadonnées).
+.DS_Store
+
+# Ignore les configurations de Visual Studio Code.
+.vscode/
+
+# Ignore les fichiers de configuration de WebStorm / IntelliJ IDEA.
+.idea/
+
+# Ignore Thumbs.db (fichier généré par Windows pour stocker les miniatures des images).
+Thumbs.db
