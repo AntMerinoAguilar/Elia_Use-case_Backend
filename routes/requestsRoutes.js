@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Request = require('../models/Request');
+const Shift = require('../models/Shift');
 
 //API REQUESTS
 
@@ -39,19 +40,55 @@ router.get('/agent/:agentId', async (req, res) => {
   }
 });
 
-
-//Mettre à jour le statut d'une demande
+//Modifier demande
 router.put('/:id/status', async (req, res) => {
-  const { status } = req.body;
-  try {
+    const { status } = req.body;
+    try {
+    // Trouver la demande originale avec tous les détails
+    const request = await Request.findById(req.params.id)
+        .populate('requesterId')
+        .populate('targetAgentId')
+        .populate('shiftId');
+
+    // Vérifier si c'est un swap et s'il est approuvé
+    if (request.requestType === 'Swap' && status === 'Approved') {
+      // Trouver le shift du demandeur
+        const requesterShift = await Shift.findById(request.shiftId);
+      
+      // Trouver le shift du agent ciblé
+        const targetShift = await Shift.findOne({ 
+        agentId: request.targetAgentId._id,
+        startDate: { $gte: requesterShift.startDate, $lt: requesterShift.endDate }
+        });
+
+        if (!requesterShift || !targetShift) {
+        return res.status(400).json({ error: 'Shifts correspondants non trouvés' });
+        }
+
+      // Échanger les agentId des shifts
+        const tempAgentId = requesterShift.agentId;
+        requesterShift.agentId = targetShift.agentId;
+        targetShift.agentId = tempAgentId;
+
+      // Sauvegarder les modifications des shifts
+        await requesterShift.save();
+        await targetShift.save();
+    }
+
+    // Mettre à jour le statut de la demande
     const updatedRequest = await Request.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
+        req.params.id,
+        { status },
+        { new: true }
     );
+
     res.json(updatedRequest);
-  } catch (err) {
-    res.status(400).json({ error: 'Erreur lors de la mise à jour de la demande' });
+    } catch (err) {
+    console.error(err);
+    res.status(400).json({ 
+        error: 'Erreur lors de la mise à jour de la demande', 
+        details: err.message 
+    });
   }
 });
 

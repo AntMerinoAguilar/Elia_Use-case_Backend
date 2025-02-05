@@ -40,4 +40,22 @@ router.put('/', async (req, res) => {
   }
 });
 
+// Supprimer une indisponibilité par son ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const deletedUnavailability = await Unavailability.findByIdAndDelete(req.params.id);
+    
+    if (!deletedUnavailability) {
+      return res.status(404).json({ error: 'Indisponibilité non trouvée' });
+    }
+    
+    res.json({ 
+      message: 'Indisponibilité supprimée avec succès',
+      deletedUnavailability: deletedUnavailability 
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'indisponibilité' });
+  }
+});
+
 module.exports = router
