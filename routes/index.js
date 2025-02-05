@@ -5,13 +5,19 @@ const express = require("express");
 const router = express.Router();
 
 // Importer les sous-routes
-const shiftsRoutes = require('./shiftsRoutes')
+const shiftsRoutes = require('./shiftsRoutes');
+const unavailabilitiesRoutes = require('./unavailabilitiesRoutes');
+const requestsRoutes = require('./shiftsRoutes');
 
 // Définir les préfixes pour chaque groupe de routes
 const basePath = {
     shifts: '/shifts',
+    unavailabilities:'/unavailabilities',
+    requests: '/requests'
 };
 
-router.use(basePath.shifts, shiftsRoutes)
+router.use(basePath.shifts, shiftsRoutes);
+router.use(basePath.unavailabilities, unavailabilitiesRoutes );
+router.use(basePath.requests, requestsRoutes);
 
 module.exports = router;

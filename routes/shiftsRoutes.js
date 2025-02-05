@@ -25,6 +25,17 @@ router.get('/', async (req, res) => {
   }
 });
 
+//Mettre à jour un shift
+router.put('/:id', async (req, res) => {
+  try {
+    const updatedShift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedShift) return res.status(404).json({ error: 'Shift non trouvé' });
+    res.json(updatedShift);
+  } catch (err) {
+    res.status(400).json({ error: 'Erreur lors de la mise à jour du shift' });
+  }
+});
+
 //  Supprimer un shift
 router.delete('/:id', async (req, res) => {
   try {
