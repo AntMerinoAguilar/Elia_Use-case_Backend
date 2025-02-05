@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 
 const agentSchema = new mongoose.Schema({
   profile_pic: String,
-  name: {String, required: true},
-  surname: {String, required: true},
-  username: {String, required: true},
-  password: {String, required: true},
+  name: {type: String, required: true},
+  surname: {type: String, required: true},
+  username: {type: String, required: true},
+  password: {type: String, required: true},
   code: String,
   telephone: String,
   sector: String,
