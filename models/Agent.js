@@ -8,7 +8,7 @@ const agentSchema = new mongoose.Schema({
   surname: {type: String, required: true},
   username: {type: String, required: true},
   password: {type: String, required: true},
-  code: String,
+  code: {type: String, required: true},
   telephone: String,
   sector: String,
   balance: { type: Number, default: 0 },

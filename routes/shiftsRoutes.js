@@ -1,13 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const Shift = require('../models/Shift');
+const Agent = require('../models/Agent')
 
  //API SHIFTS
 
 //  Créer un shift
 router.post('/', async (req, res) => {
   try {
-    const shift = new Shift(req.body);
+    const agent = await Agent.findById(req.body.agentId);
+      const shift = new Shift({
+      ...req.body,
+      agentCode: agent.code // Ajouter le code de l'agent
+    });
     await shift.save();
     res.status(201).json(shift);
   } catch (err) {
