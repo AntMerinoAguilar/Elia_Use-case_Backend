@@ -12,8 +12,7 @@ const Request = require('./models/Request');
 // Importer les routes via le fichier routes/index.js
 const routes = require("./routes");
 
-// Utilisation du Router
-app.use('/api', routes);
+
 
 // Pour charger le .env
 dotenv.config();
@@ -40,6 +39,9 @@ mongoose.connect(process.env.MONGO_URI)
 app.get("/", (req, res) => {
   res.send("API en ligne");
 });
+
+// Utilisation du Router
+app.use('/api', routes);
 
 // Démarrer le serveur
 app.listen(PORT, () => console.log(`Serveur lancé sur le port : ${PORT}`));
