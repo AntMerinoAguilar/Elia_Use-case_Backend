@@ -7,7 +7,7 @@ const router = express.Router();
 // Importer les sous-routes
 const shiftsRoutes = require('./shiftsRoutes');
 const unavailabilitiesRoutes = require('./unavailabilitiesRoutes');
-const requestsRoutes = require('./shiftsRoutes');
+const requestsRoutes = require('./requestsRoutes');
 const agentsRoutes = require("./agentsRoutes");
 
 // Définir les préfixes pour chaque groupe de routes

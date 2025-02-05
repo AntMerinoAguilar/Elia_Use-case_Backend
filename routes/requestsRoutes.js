@@ -54,3 +54,23 @@ router.put('/:id/status', async (req, res) => {
     res.status(400).json({ error: 'Erreur lors de la mise à jour de la demande' });
   }
 });
+
+// Supprimer une demande par son ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const deletedRequest = await Request.findByIdAndDelete(req.params.id);
+    
+    if (!deletedRequest) {
+      return res.status(404).json({ error: 'Demande non trouvée' });
+    }
+    
+    res.json({ 
+      message: 'Demande supprimée avec succès',
+      deletedRequest: deletedRequest 
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression de la demande' });
+  }
+});
+
+module.exports = router
