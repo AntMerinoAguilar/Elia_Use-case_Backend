@@ -5,9 +5,13 @@ const express = require("express");
 const router = express.Router();
 
 // Importer les sous-routes
-
+const agentsRoutes = require("./agentsRoutes");
 
 // Définir les préfixes pour chaque groupe de routes
+const basePath = {
+    agents: "/agents",
+};
 
+router.use(basePath.agents, agentsRoutes);
 
 module.exports = router;
