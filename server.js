@@ -3,6 +3,12 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 
+//Imports des models
+const Agent = require('./models/Agent');
+const Shift = require('./models/Shift');
+const Unavailability = require('./models/Unavailability');
+const Request = require('./models/Request');
+
 // Pour charger le .env
 dotenv.config();
 
@@ -10,7 +16,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+    origin: ["http://localhost:5173", "https://eDutygroupe2.vercel.app"], 
+    methods: "GET,POST,DELETE ,PUT ,PATCH",
+    allowedHeaders: "Content-Type,Authorization",
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -26,3 +37,7 @@ app.get("/", (req, res) => {
 
 // Démarrer le serveur
 app.listen(PORT, () => console.log(`Serveur lancé sur le port : ${PORT}`));
+
+
+
+
