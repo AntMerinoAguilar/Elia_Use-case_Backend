@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 const corsOptions = {
     origin: ["http://localhost:5173", "https://eDutygroupe2.vercel.app"], 
-    methods: "GET,POST,DELETE ,PUT ,PATCH",
+    methods: "GET,POST,DELETE,PUT,PATCH",
     allowedHeaders: "Content-Type,Authorization",
 };
 app.use(cors(corsOptions));
