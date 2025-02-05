@@ -7,37 +7,37 @@ const Shift = require('../models/Shift');
 
 //Créer une demande de remplacement ou de switch
 router.post('/', async (req, res) => {
-  try {
+        try {
     const request = new Request(req.body);
     await request.save();
     res.status(201).json(request);
-  } catch (err) {
+    } catch (err) {
     res.status(400).json({ error: 'Erreur lors de la création de la demande' });
-  }
+    }
 });
 
 //Récupérer toutes les demandes
 router.get('/', async (req, res) => {
-  try {
+    try {
     const requests = await Request.find().populate('requesterId').populate('shiftId').populate('targetAgentId');
     res.json(requests);
-  } catch (err) {
+    } catch (err) {
     res.status(500).json({ error: 'Erreur serveur' });
-  }
+    }
 });
 
 //Récupérer les demandes d'un agent spécifique
 router.get('/agent/:agentId', async (req, res) => {
-  try {
+    try {
     const agentId = req.params.agentId;
     const requests = await Request.find({ $or: [{ requesterId: agentId }, { targetAgentId: agentId }] })
-      .populate('requesterId')
-      .populate('shiftId')
-      .populate('targetAgentId');
+        .populate('requesterId')
+        .populate('shiftId')
+        .populate('targetAgentId');
     res.json(requests);
-  } catch (err) {
+    } catch (err) {
     res.status(500).json({ error: 'Erreur serveur lors de la récupération des demandes' });
-  }
+    }
 });
 
 //Modifier demande
@@ -54,7 +54,7 @@ router.put('/:id/status', async (req, res) => {
     if (request.requestType === 'Swap' && status === 'Approved') {
       // Trouver le shift du demandeur
         const requesterShift = await Shift.findById(request.shiftId);
-      
+    
       // Trouver le shift du agent ciblé
         const targetShift = await Shift.findOne({ 
         agentId: request.targetAgentId._id,
@@ -89,25 +89,25 @@ router.put('/:id/status', async (req, res) => {
         error: 'Erreur lors de la mise à jour de la demande', 
         details: err.message 
     });
-  }
+    }
 });
 
 // Supprimer une demande par son ID
 router.delete('/:id', async (req, res) => {
-  try {
+    try {
     const deletedRequest = await Request.findByIdAndDelete(req.params.id);
     
-    if (!deletedRequest) {
-      return res.status(404).json({ error: 'Demande non trouvée' });
+        if (!deletedRequest) {
+        return res.status(404).json({ error: 'Demande non trouvée' });
     }
     
     res.json({ 
-      message: 'Demande supprimée avec succès',
-      deletedRequest: deletedRequest 
+        message: 'Demande supprimée avec succès',
+        deletedRequest: deletedRequest 
     });
-  } catch (err) {
+    } catch (err) {
     res.status(500).json({ error: 'Erreur serveur lors de la suppression de la demande' });
-  }
+    }
 });
 
 module.exports = router
