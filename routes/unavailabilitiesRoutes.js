@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Unavailability = require('../models/Unavailability');
+const Notification= require('../models/Notification');
 
 // API UNAVAILABILITIES
 
@@ -9,6 +10,20 @@ router.post('/', async (req, res) => {
   try {
     const unavailability = new Unavailability(req.body);
     await unavailability.save();
+
+    //Logique pour ajouter une notification, il faut l'améliorer et rajouter la 
+    //logique pour divers cas
+
+    const notification = new Notification({ 
+      recipientId: unavailability.agentId,
+      type: 'Status Update',
+      message: `Vous avez déclaré une indisponibilité du ${unavailability.startDate} au ${unavailability.endDate}.`
+    });
+
+    await notification.save();
+
+
+
     res.status(201).json(unavailability);
   } catch (err) {
     res.status(400).json({ error: "Erreur lors de la création de l'indisponibilité" });
