@@ -48,7 +48,7 @@ router.post('/', async (req, res) => {
     } else {
     
     
-        // Cas 2: Swap ouvert ou Remplacement ouvert => Trouver les agents du même secteur
+        // Cas 2: Swap ouvert ou Remplacement ouvert 
         const requester = await Agent.findById(requesterId);
         const agents = await Agent.find({ 
         _id: { $ne: requesterId }, 
