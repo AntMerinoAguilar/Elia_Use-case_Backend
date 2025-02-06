@@ -111,13 +111,17 @@ router.put('/:id/approve', async (req, res) => {
         slot.endTime.getTime() === new Date(selectedSlot.endTime).getTime()         // autrement Js compare 2 objets mais pas leurs valeurs
     );
 
+    //Verifier compris dedans
+
     if (!validSlot) return res.status(400).json({ error: 'Créneau non valide' });
+
+    //Ajouter logique que timeSlot même durée que Available slots au final !!!
 
     // Appliquer le swap
     const requesterShift = await Shift.findById(request.shiftId);
     const targetShift = await Shift.findOne({
       agentId: request.targetAgentId._id,
-      startDate: { $gte: requesterShift.startDate, $lt: requesterShift.endDate }
+      startDate: { $gte: requesterShift.startDate, $lt: requesterShift.endDate } // voir si besoin de lte
     });
 
     if (!requesterShift || !targetShift) {
