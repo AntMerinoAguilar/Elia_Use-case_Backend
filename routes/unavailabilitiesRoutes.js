@@ -14,9 +14,11 @@ router.post('/', async (req, res) => {
     //Logique pour ajouter une notification, il faut l'améliorer et rajouter la 
     //logique pour divers cas
 
+    //Notification à l'emetteur de l'indisponibilité
+
     const notification = new Notification({ 
       recipientId: unavailability.agentId,
-      type: 'Status Update',
+      type: 'Unavailability Added',
       message: `Vous avez déclaré une indisponibilité du ${unavailability.startDate} au ${unavailability.endDate}.`
     });
 
@@ -41,7 +43,7 @@ router.get('/', async (req, res) => {
 });
 
 //Mettre à jour le statut d'une indisponibilité
-router.put('/', async (req, res) => {
+router.put('/:id', async (req, res) => {
   const { status } = req.body;
   try {
     const updated = await Unavailability.findByIdAndUpdate(
