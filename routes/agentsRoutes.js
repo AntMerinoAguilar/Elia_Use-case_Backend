@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Agent = require("../models/Agent");
+const requireAuthMiddleware = require("../middlewares/authMiddleware");
 
 // Route pour récupérer tous les agents
-router.get("/", async (req, res) => {
+router.get("/", requireAuthMiddleware, async (req, res) => {
   try {
     const agents = await Agent.find();
     res.status(200).json(agents);
@@ -13,7 +14,7 @@ router.get("/", async (req, res) => {
 });
 
 // Route pour récupérer un agent par ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", requireAuthMiddleware, async (req, res) => {
   try {
     const id = req.params.id;
     const agent = await Agent.findById(id);
@@ -27,7 +28,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Route pour ajouter un nouvel agent
-router.post("/", async (req, res) => {
+router.post("/", requireAuthMiddleware, async (req, res) => {
   try {
     const newAgent = new Agent(req.body);
     await newAgent.save();
@@ -38,7 +39,7 @@ router.post("/", async (req, res) => {
 });
 
 // Route pour mettre à jour un agent
-router.put("/:id", async (req, res) => {
+router.put("/:id", requireAuthMiddleware, async (req, res) => {
   try {
     const id = req.params.id;
     const updatedAgent = await Agent.findByIdAndUpdate(id, req.body, {
@@ -54,7 +55,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // Route pour supprimer un agent
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAuthMiddleware, async (req, res) => {
   try {
     const id = req.params.id;
     const deletedAgent = await Agent.findByIdAndDelete(id);
