@@ -17,10 +17,10 @@ router.post("/login", async (req, res) => {
     }
 
     // Comparer le mot de passe  avec celui stocké dans la DB
-    const isMatch = await bcrypt.compare(password, agent.password);
+    const isMatch = await Agent.findOne({ password:password})  /* await bcrypt.compare(password, agent.password); */
     if (!isMatch) {
       return res.status(400).json({ message: "Mot de passe incorrect" });
-    }
+    } 
 
     // Générer un token JWT pour l'agent
     const token = jwt.sign(

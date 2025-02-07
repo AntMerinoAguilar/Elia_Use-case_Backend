@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 //Model Demande
 
-//Rectifier le fait que availbleSlots n'est required que si le requestType est un swap
+
 
 const requestSchema = new mongoose.Schema({
   requesterId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', required: true },
@@ -14,8 +14,8 @@ const requestSchema = new mongoose.Schema({
   },
 
   availableSlots: [{ //Plages horaires proposées (obligatoire)
-    startTime: { type: Date, required: true },
-    endTime: { type: Date, required: true }
+    startTime: Date,
+    endTime: Date
   }],
 
   requestType: { type: String, enum: ['Replacement', 'Swap'], required: true },

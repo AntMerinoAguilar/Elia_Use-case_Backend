@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const Request = require('../models/Request');
 const Shift = require('../models/Shift');
-const Notification = require('../models/Notification')
+const Notification = require('../models/Notification');
+const requireAuthMiddleware = require("../middlewares/authMiddleware");
 
 //API REQUESTS
 
 //Créer une demande de remplacement ou de switch
-router.post('/', async (req, res) => {
+router.post('/',requireAuthMiddleware, async (req, res) => {
     try {
     const { requesterId, shiftId, timeSlot, availableSlots, requestType, message, targetAgentId } = req.body;
 
@@ -75,7 +76,7 @@ router.post('/', async (req, res) => {
 
 
 //Récupérer toutes les demandes
-router.get('/', async (req, res) => {
+router.get('/', requireAuthMiddleware, async (req, res) => {
     try {
     const requests = await Request.find().populate('requesterId').populate('shiftId').populate('targetAgentId');
     res.json(requests);
@@ -85,7 +86,7 @@ router.get('/', async (req, res) => {
 });
 
 //Récupérer les demandes d'un agent spécifique
-router.get('/agent/:agentId', async (req, res) => {
+router.get('/agent/:agentId', requireAuthMiddleware, async (req, res) => {
     try {
     const agentId = req.params.agentId;
     const requests = await Request.find({ $or: [{ requesterId: agentId }, { targetAgentId: agentId }] })
@@ -101,7 +102,7 @@ router.get('/agent/:agentId', async (req, res) => {
 
 
 //Appliquer demande de Swap en approuvant par destinataire
-router.put('/:id/approve', async (req, res) => {
+router.put('/:id/approve', requireAuthMiddleware, async (req, res) => {
     try {
         const { selectedSlot } = req.body;
 
@@ -152,7 +153,7 @@ router.put('/:id/approve', async (req, res) => {
                 return res.status(400).json({ error: "L’agent cible a déjà un shift à ce moment-là" });
             }
         } else {
-
+            
             //Peut être chercher dans les params et que la personne qui clique soit la personne en question?
             
             // Si aucun agent cible n'est défini (swap ouvert), trouver un agent disponible
@@ -220,7 +221,7 @@ router.put('/:id/approve', async (req, res) => {
 
 
 //Appliquer demande demande en changeant status
-router.put('/:id/status', async (req, res) => {
+router.put('/:id/status', requireAuthMiddleware, async (req, res) => {
     const { status } = req.body;
     try {
     // Trouver la demande originale avec tous les détails
@@ -272,7 +273,7 @@ router.put('/:id/status', async (req, res) => {
 });
 
 // Supprimer une demande par son ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuthMiddleware, async (req, res) => {
     try {
     const deletedRequest = await Request.findByIdAndDelete(req.params.id);
     

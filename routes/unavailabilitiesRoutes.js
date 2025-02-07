@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Unavailability = require('../models/Unavailability');
 const Notification= require('../models/Notification');
+const requireAuthMiddleware = require("../middlewares/authMiddleware");
 
 // API UNAVAILABILITIES
 
 //Ajouter une indisponibilité
-router.post('/', async (req, res) => {
+router.post('/',requireAuthMiddleware, async (req, res) => {
   try {
     const unavailability = new Unavailability(req.body);
     await unavailability.save();
@@ -18,7 +19,7 @@ router.post('/', async (req, res) => {
 
     const notification = new Notification({ 
       recipientId: unavailability.agentId,
-      type: 'Unavailability Added',
+      type: 'Unavailability Signaled',
       message: `Vous avez déclaré une indisponibilité du ${unavailability.startDate} au ${unavailability.endDate}.`
     });
 
@@ -33,7 +34,7 @@ router.post('/', async (req, res) => {
 });
 
 //Lister les indisponibilités
-router.get('/', async (req, res) => {
+router.get('/',requireAuthMiddleware, async (req, res) => {
   try {
     const unavailabilities = await Unavailability.find().populate('agentId').populate('relatedShiftId');
     res.json(unavailabilities);
@@ -43,7 +44,7 @@ router.get('/', async (req, res) => {
 });
 
 //Mettre à jour le statut d'une indisponibilité
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAuthMiddleware, async (req, res) => {
   const { status } = req.body;
   try {
     const updated = await Unavailability.findByIdAndUpdate(
@@ -58,7 +59,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Supprimer une indisponibilité par son ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuthMiddleware, async (req, res) => {
   try {
     const deletedUnavailability = await Unavailability.findByIdAndDelete(req.params.id);
     
