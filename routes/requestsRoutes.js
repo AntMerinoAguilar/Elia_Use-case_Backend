@@ -3,290 +3,156 @@ const router = express.Router();
 const Request = require('../models/Request');
 const Shift = require('../models/Shift');
 const Notification = require('../models/Notification');
+const Agent = require('../models/Agent')
 const requireAuthMiddleware = require("../middlewares/authMiddleware");
 
 //API REQUESTS
 
 //Créer une demande de remplacement ou de switch
-router.post('/',requireAuthMiddleware, async (req, res) => {
+router.post('/', requireAuthMiddleware, async (req, res) => {
     try {
-    const { requesterId, shiftId, timeSlot, availableSlots, requestType, message, targetAgentId } = req.body;
+        const { requesterId, shiftId, timeSlot, availableSlots, requestType, message, targetAgentId } = req.body;
 
-    // Vérification des champs obligatoires
-    if (!timeSlot || !timeSlot.startTime || !timeSlot.endTime) {
-        return res.status(400).json({ error: "Le créneau horaire souhaité (timeSlot) est obligatoire." });
-    }
+        if (!timeSlot || !timeSlot.startTime || !timeSlot.endTime) {
+            return res.status(400).json({ error: "Le créneau horaire souhaité (timeSlot) est obligatoire." });
+        }
 
-    if (requestType === 'Swap' && (!availableSlots || availableSlots.length === 0)) {
-        return res.status(400).json({ error: "Pour un Swap, il faut proposer au moins un créneau disponible (availableSlots)." });
-    }
+        if (requestType === 'Swap' && (!availableSlots || availableSlots.length === 0)) {
+            return res.status(400).json({ error: "Pour un Swap, il faut proposer au moins un créneau de disponibilité (availableSlots)." });
+        }
 
-    
-    // Création de la demande
-    const newRequest = new Request({
-        requesterId,
-        shiftId,
-        timeSlot,
-        availableSlots: requestType === 'Swap' ? availableSlots : undefined, // Seulement pour les swaps
-        requestType,
-        message,
-      targetAgentId: targetAgentId || null // Si pas de cible, reste null
-    });
-
-    await newRequest.save();
-
-    // Gestion des notifications
-    if (targetAgentId) {
-    
-    
-        // Cas 1: Demande avec cible spécifique (Remplacement ou Swap ciblé)
-        const notification = new Notification({
-        recipientId: targetAgentId,
-        type: requestType === 'Swap' ? 'Swap Request' : 'Replacement Request',
-        message: `Nouvelle demande de ${requestType.toLowerCase()} de l'agent ${requesterId}.`
+        const newRequest = new Request({
+            requesterId,
+            shiftId,
+            timeSlot,
+            availableSlots: requestType === 'Swap' ? availableSlots : undefined,
+            requestType,
+            message,
+            targetAgentId: targetAgentId || null
         });
-        await notification.save();
-    } else {
-    
-    
-        // Cas 2: Swap ouvert ou Remplacement ouvert 
+
+        await newRequest.save();
+
+        // Gestion des notifications
         const requester = await Agent.findById(requesterId);
-
         if (!requester) {
-        return res.status(404).json({ error: 'Requester not found' });
-    }
-        const agents = await Agent.find({ 
-        _id: { $ne: requesterId }, 
-        });
+            return res.status(404).json({ error: 'Requester not found' });
+        }
 
-        const notifications = agents.map(agent => ({
-        recipientId: agent._id,
-        type: requestType === 'Swap' ? 'Open Swap Request' : 'Open Replacement Request',
-        message: `Un ${requestType.toLowerCase()} ouvert est disponible pour le shift de ${requester.code}.` //accès au code ici?
-        }));
+        if (targetAgentId) {
+            // Cas 1: Swap ciblé ou Replacement ciblé -> Seul l'agent cible reçoit une notification
+            const notification = new Notification({
+                recipientId: targetAgentId,
+                type: requestType === 'Swap' ? 'Swap Request' : 'Replacement Request',
+                message: `Nouvelle demande de ${requestType.toLowerCase()} de l'agent ${requester.code}.`
+            });
+            await notification.save();
+        } else {
+            // Cas 2: Swap ouvert ou Replacement ouvert -> Tous les autres agents sauf le demandeur reçoivent une notification
+            const agents = await Agent.find({ _id: { $ne: requesterId } });
 
-        await Notification.insertMany(notifications);
-    }
+            const notifications = agents.map(agent => ({
+                recipientId: agent._id,
+                type: requestType === 'Swap' ? 'Swap Request' : 'Replacement Request',
+                message: `Un ${requestType.toLowerCase()} ouvert est disponible pour le shift de ${requester.code}.`
+            }));
 
-    res.status(201).json(newRequest);
+            await Notification.insertMany(notifications);
+        }
+
+        res.status(201).json(newRequest);
     } catch (err) {
-    res.status(500).json({ error: 'Erreur serveur lors de la création de la demande' });
+        console.error("Erreur lors de la création de la demande :", err);
+        res.status(500).json({ error: 'Erreur serveur lors de la création de la demande' });
     }
 });
 
 
-//Récupérer toutes les demandes
-router.get('/', requireAuthMiddleware, async (req, res) => {
+//Accepter une demande de Swap et de Remplacement
+router.put('/:id/accept', requireAuthMiddleware, async (req, res) => {
     try {
-    const requests = await Request.find().populate('requesterId').populate('shiftId').populate('targetAgentId');
-    res.json(requests);
-    } catch (err) {
-    res.status(500).json({ error: 'Erreur serveur' });
-    }
-});
+        const { agentId, selectedSlot } = req.body;
+        const requestId = req.params.id.trim();
 
-//Récupérer les demandes d'un agent spécifique
-router.get('/agent/:agentId', requireAuthMiddleware, async (req, res) => {
-    try {
-    const agentId = req.params.agentId;
-    const requests = await Request.find({ $or: [{ requesterId: agentId }, { targetAgentId: agentId }] })
-        .populate('requesterId')
-        .populate('shiftId')
-        .populate('targetAgentId');
-    res.json(requests);
-    } catch (err) {
-    res.status(500).json({ error: 'Erreur serveur lors de la récupération des demandes' });
-    }
-});
-
-
-
-//Appliquer demande de Swap en approuvant par destinataire
-router.put('/:id/approve', requireAuthMiddleware, async (req, res) => {
-    try {
-        const { selectedSlot } = req.body;
-
-        // Récupérer la demande avec les relations nécessaires
-        const request = await Request.findById(req.params.id)
-            .populate('requesterId')
-            .populate('targetAgentId')
-            .populate('shiftId');
-
+        //Récupérer la demande et les infos associées
+        const request = await Request.findById(requestId).populate('shiftId');
         if (!request) return res.status(404).json({ error: 'Demande non trouvée' });
 
-        // Vérifier que le créneau choisi fait partie des options proposées
-        const validSlot = request.availableSlots.find(slot =>
-            new Date(selectedSlot.startTime).getTime() >= slot.startTime.getTime() &&
-            new Date(selectedSlot.endTime).getTime() <= slot.endTime.getTime()
-        );
+        const { requestType, targetAgentId, requesterId, shiftId, availableSlots } = request;
 
-        if (!validSlot) {
-            return res.status(400).json({ error: 'Créneau non valide' });
+        //Vérifier que l'agent qui accepte existe
+        const acceptingAgent = await Agent.findById(agentId);
+        if (!acceptingAgent) return res.status(404).json({ error: "L'agent qui accepte n'existe pas." });
+
+        //Vérifier que l'agent demandeur existe
+        const requesterAgent = await Agent.findById(requesterId);
+        if (!requesterAgent) return res.status(404).json({ error: "L'agent demandeur n'existe pas." });
+
+        //Vérifier si l'agent a le droit d'accepter (si la demande est ciblée)
+        if (targetAgentId && targetAgentId.toString() !== agentId) {
+            return res.status(403).json({ error: "Vous n'êtes pas l'agent cible de cette demande." });
         }
 
-        // Vérifier que la durée du selectedSlot est égale à la durée du timeSlot initial
-        const timeSlotDuration = new Date(request.timeSlot.endTime).getTime() - new Date(request.timeSlot.startTime).getTime();
-        const selectedSlotDuration = new Date(selectedSlot.endTime).getTime() - new Date(selectedSlot.startTime).getTime();
+        //Vérification spécifique au Swap (créneau + échange)
+        if (requestType === 'Swap') {
+            if (!selectedSlot) return res.status(400).json({ error: 'Un créneau doit être sélectionné pour un swap.' });
 
-        if (selectedSlotDuration !== timeSlotDuration) {
-            return res.status(400).json({ error: 'La durée du créneau choisi ne correspond pas à la durée du timeSlot initial.' });
+            const validSlot = availableSlots.some(slot =>
+                new Date(selectedSlot.startTime).getTime() === new Date(slot.startTime).getTime() &&
+                new Date(selectedSlot.endTime).getTime() === new Date(slot.endTime).getTime()
+            );
+            if (!validSlot) return res.status(400).json({ error: 'Créneau choisi invalide.' });
+
+            //Mettre à jour la demande avec l'agent qui accepte si swap ouvert
+            if (!targetAgentId) request.targetAgentId = agentId;
         }
 
-        // Récupérer le shift du demandeur
-        const requesterShift = await Shift.findById(request.shiftId);
-        if (!requesterShift) {
-            return res.status(400).json({ error: 'Shift du demandeur introuvable' });
-        }
-
-        // Vérifier si un agent cible a été défini
-        if (request.targetAgentId) {
-            
-            // Vérifier que l'agent cible est disponible (n'a pas déjà un shift sur cette période)
+        //Vérification spécifique au Replacement (éviter conflit d'horaires)
+        if (requestType === 'Replacement') {
             const existingShift = await Shift.findOne({
-                agentId: request.targetAgentId._id,
-                $or: [
-                    { startDate: { $lt: requesterShift.endDate }, endDate: { $gt: requesterShift.startDate } }
-                ]
+                agentId,
+                $or: [{ startDate: { $lt: shiftId.endDate }, endDate: { $gt: shiftId.startDate } }]
             });
+            if (existingShift) return res.status(400).json({ error: "Vous avez déjà un shift à ce moment-là." });
 
-            if (existingShift) {
-                return res.status(400).json({ error: "L’agent cible a déjà un shift à ce moment-là" });
-            }
-        } else {
-            
-            //Peut être chercher dans les params et que la personne qui clique soit la personne en question?
-            
-            // Si aucun agent cible n'est défini (swap ouvert), trouver un agent disponible
-            const availableAgents = await Agent.find({
-                _id: { $ne: request.requesterId }, // Exclure le demandeur lui-même
-                _id: { $nin: await Shift.distinct('agentId', {
-                    startDate: { $lt: requesterShift.endDate }, //utilité dans les secteurs à 2 agents mais pas dans notre cas
-                    endDate: { $gt: requesterShift.startDate }
-                })}
-            });
+            // Calculer la durée du shift en heures
+            const shiftDurationMs = new Date(shiftId.endDate) - new Date(shiftId.startDate);
+            const shiftDurationHours = shiftDurationMs / (1000 * 60 * 60); // Convertir en heures
 
-            if (availableAgents.length === 0) {
-                return res.status(400).json({ error: 'Aucun agent disponible pour cet échange.' });
-            }
-
-            // Prendre le premier agent disponible (on pourrait aussi envoyer une notification à plusieurs agents)
-            request.targetAgentId = availableAgents[0]._id; // à changer
+            // Mettre à jour la balance des agents
+            await Agent.findByIdAndUpdate(requesterId, { $inc: { balance: -shiftDurationHours } });
+            await Agent.findByIdAndUpdate(agentId, { $inc: { balance: shiftDurationHours } });
         }
 
-        // Quid du pas d'agent cible?
-
-        // Récupérer le shift de l'agent cible
-        const targetShift = await Shift.findOne({
-            agentId: request.targetAgentId._id,
-            startDate: { $gte: requesterShift.startDate, $lt: requesterShift.endDate }
+        //Mettre à jour le shift avec le nouvel agent
+        await Shift.findByIdAndUpdate(shiftId._id, {
+            agentId: acceptingAgent._id,
+            agentCode: acceptingAgent.code
         });
 
-        if (!targetShift) {
-            return res.status(400).json({ error: 'Shift de l’agent cible non trouvé' });
-        }
-
-        // Échanger les agentId des shifts
-        const tempAgentId = requesterShift.agentId;
-        requesterShift.agentId = targetShift.agentId;
-        targetShift.agentId = tempAgentId;
-
-        await requesterShift.save();
-        await targetShift.save();
-
-        // Mettre à jour le statut de la requête
+        //Mettre à jour la demande comme "Approved"
         request.status = 'Approved';
         await request.save();
 
-        //Effacer request dans la db?
+        //Notifications
+        await Notification.insertMany([
+            {
+                recipientId: requesterId,
+                type: 'Status Update',
+                message: `Votre demande de ${requestType.toLowerCase()} a été acceptée par ${acceptingAgent.code}.`
+            },
+            {
+                recipientId: acceptingAgent._id,
+                type: 'Status Update',
+                message: `Vous avez accepté un ${requestType.toLowerCase()} avec ${requesterAgent.code}.`
+            }
+        ]);
 
-        // Ajouter une notification pour le demandeur
-        const notification = new Notification({
-            recipientId: request.requesterId._id,
-            type: 'Status Update',
-            message: `Votre demande de swap a été acceptée pour le créneau ${selectedSlot.startTime} - ${selectedSlot.endTime}.`
-        });
-        await notification.save();
-
-        res.json({ message: 'Swap validé', updatedRequest: request });
+        res.json({ message: `${requestType} validé et shift mis à jour.`, updatedRequest: request });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erreur lors de l'approbation du swap" });
-    }
-});
-
-
-
-
-
-
-//Appliquer demande demande en changeant status
-router.put('/:id/status', requireAuthMiddleware, async (req, res) => {
-    const { status } = req.body;
-    try {
-    // Trouver la demande originale avec tous les détails
-    const request = await Request.findById(req.params.id)
-        .populate('requesterId')
-        .populate('targetAgentId')
-        .populate('shiftId');
-
-    // Vérifier si c'est un swap et s'il est approuvé
-    if (request.requestType === 'Swap' && status === 'Approved') {
-      // Trouver le shift du demandeur
-        const requesterShift = await Shift.findById(request.shiftId);
-    
-      // Trouver le shift du agent ciblé
-        const targetShift = await Shift.findOne({ 
-        agentId: request.targetAgentId._id,
-        startDate: { $gte: requesterShift.startDate, $lt: requesterShift.endDate }
-        });
-
-        if (!requesterShift || !targetShift) {
-        return res.status(400).json({ error: 'Shifts correspondants non trouvés' });
-        }
-
-      // Échanger les agentId des shifts
-        const tempAgentId = requesterShift.agentId;
-        requesterShift.agentId = targetShift.agentId;
-        targetShift.agentId = tempAgentId;
-
-      // Sauvegarder les modifications des shifts
-        await requesterShift.save();
-        await targetShift.save();
-    }
-
-    // Mettre à jour le statut de la demande
-    const updatedRequest = await Request.findByIdAndUpdate(
-        req.params.id,
-        { status },
-        { new: true }
-    );
-
-    res.json(updatedRequest);
-    } catch (err) {
-    console.error(err);
-    res.status(400).json({ 
-        error: 'Erreur lors de la mise à jour de la demande', 
-        details: err.message 
-    });
-    }
-});
-
-// Supprimer une demande par son ID
-router.delete('/:id', requireAuthMiddleware, async (req, res) => {
-    try {
-    const deletedRequest = await Request.findByIdAndDelete(req.params.id);
-    
-        if (!deletedRequest) {
-        return res.status(404).json({ error: 'Demande non trouvée' });
-    }
-    
-    res.json({ 
-        message: 'Demande supprimée avec succès',
-        deletedRequest: deletedRequest 
-    });
-    } catch (err) {
-    res.status(500).json({ error: 'Erreur serveur lors de la suppression de la demande' });
+        console.error("Erreur lors de l'acceptation de la demande :", err);
+        res.status(500).json({ error: "Erreur serveur lors de l'acceptation de la demande." });
     }
 });
 
