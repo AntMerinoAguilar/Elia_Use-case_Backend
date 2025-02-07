@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Shift = require('../models/Shift');
-const Agent = require('../models/Agent')
+const Agent = require('../models/Agent');
+const requireAuthMiddleware = require("../middlewares/authMiddleware");
 
  //API SHIFTS
 
 //  Créer un shift
-router.post('/', async (req, res) => {
+router.post('/', requireAuthMiddleware, async (req, res) => {
   try {
     const agent = await Agent.findById(req.body.agentId);
       const shift = new Shift({
@@ -21,7 +22,7 @@ router.post('/', async (req, res) => {
 });
 
 //  Récupérer tous les shifts
-router.get('/', async (req, res) => {
+router.get('/', requireAuthMiddleware, async (req, res) => {
   try {
     const shifts = await Shift.find().populate('agentId').populate('replacements.replacementId');
     res.json(shifts);
@@ -31,7 +32,7 @@ router.get('/', async (req, res) => {
 });
 
 //Mettre à jour un shift
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAuthMiddleware, async (req, res) => {
   try {
     const updatedShift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updatedShift) return res.status(404).json({ error: 'Shift non trouvé' });
@@ -42,7 +43,7 @@ router.put('/:id', async (req, res) => {
 });
 
 //  Supprimer un shift
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuthMiddleware, async (req, res) => {
   try {
     const deletedShift = await Shift.findByIdAndDelete(req.params.id);
     if (!deletedShift) return res.status(404).json({ error: 'Shift non trouvé' });
