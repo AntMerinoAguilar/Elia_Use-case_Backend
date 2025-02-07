@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 //Model Demande
 
+//Rectifier le fait que availbleSlots n'est required que si le requestType est un swap
+
 const requestSchema = new mongoose.Schema({
   requesterId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', required: true },
   shiftId: { type: mongoose.Schema.Types.ObjectId, ref: 'Shift', required: true },
