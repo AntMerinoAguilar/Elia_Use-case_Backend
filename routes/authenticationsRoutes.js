@@ -29,11 +29,18 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    // Renvoyer le token dans la réponse
-    res.status(200).json({
-      message: "Connexion réussie",
-      token,
-    });
+    // Stocker le token dans un cookie
+    res.cookie("token", token, {
+      httpOnly: true,  
+      secure: false,  // ⚠️ Doit être `true` en production avec HTTPS
+      sameSite: "Lax", // Permet l'accès entre différents ports (5173 → 3000)
+      // domain: "localhost", // Spécifie que le cookie appartient à localhost
+      path: "/",  // Rend le cookie accessible sur toutes les routes
+      maxAge: 24 * 60 * 60 * 1000, 
+  });
+
+  res.status(200).json({ message: "Connexion réussie" });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur du serveur" });
