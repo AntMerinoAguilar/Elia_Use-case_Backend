@@ -2,8 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const cookieParser = require("cookie-parser"); // Importer cookie-parser
 
-//Imports des models
+// Imports des models
 const Agent = require('./models/Agent');
 const Shift = require('./models/Shift');
 const Unavailability = require('./models/Unavailability');
@@ -11,8 +12,6 @@ const Request = require('./models/Request');
 
 // Importer les routes via le fichier routes/index.js
 const routes = require("./routes");
-
-
 
 // Pour charger le .env
 dotenv.config();
@@ -25,10 +24,18 @@ const corsOptions = {
     origin: ["http://localhost:5173", "https://eDutygroupe2.vercel.app"], 
     methods: "GET,POST,DELETE,PUT,PATCH",
     allowedHeaders: "Content-Type,Authorization",
+    credentials: true,  // Ajout pour autoriser les cookies/sessions
 };
 app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); // Ajouter cookie-parser ici
 
 // Connexion à MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -45,7 +52,3 @@ app.use('/api', routes);
 
 // Démarrer le serveur
 app.listen(PORT, () => console.log(`Serveur lancé sur le port : ${PORT}`));
-
-
-
-
