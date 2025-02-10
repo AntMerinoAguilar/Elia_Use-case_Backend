@@ -20,7 +20,6 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 
-
 // Middleware
 const corsOptions = {
     origin: ["http://localhost:5173", "https://eDutygroupe2.vercel.app"], 
