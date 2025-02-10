@@ -29,7 +29,6 @@ router.post("/login", async (req, res) => {
       { expiresIn: "10d" }
     );
 
-
     // Stocker le token dans un cookie
     res.cookie("token", token, {
       httpOnly: true,  
@@ -37,15 +36,12 @@ router.post("/login", async (req, res) => {
       sameSite: "Lax", // Permet l'accès entre différents ports (5173 → 3000)
       // domain: "localhost", // Spécifie que le cookie appartient à localhost
       path: "/",  // Rend le cookie accessible sur toutes les routes
-      maxAge: 10* 24 * 60 * 60 * 1000, 
+      maxAge: 10 * 24 * 60 * 60 * 1000, 
   });
 
-  
-
-    // Renvoyer le token dans la réponse
+    // Renvoi d'une réponse de succès
     res.status(200).json({
       message: "Connexion réussie",
-      token,
     });
   } catch (err) {
     console.error(err);
