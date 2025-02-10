@@ -135,14 +135,7 @@ router.put('/:id/accept', requireAuthMiddleware, async (req, res) => {
         request.status = 'Approved';
         await request.save();
         
-        //Archive dans l'historique quand Approved
-        console.log("Avant archivage de la request :", request);
-        await archiveToHistory(request, 'Request Approved');
-        console.log("Request archivée avec succès !");
-
-
-        //Supprimer la request quand archivée
-        await Request.findByIdAndDelete(requestId)
+       
 
         //Notifications
         await Notification.insertMany([
@@ -159,6 +152,15 @@ router.put('/:id/accept', requireAuthMiddleware, async (req, res) => {
         ]);
 
         res.json({ message: `${requestType} validé et shift mis à jour.`, updatedRequest: request });
+
+         //Archive dans l'historique quand Approved
+        
+        await archiveToHistory(request, 'Request Approved');
+        
+
+
+        //Supprimer la request quand archivée
+        await Request.findByIdAndDelete(requestId)
 
     } catch (err) {
         console.error("Erreur lors de l'acceptation de la demande :", err);

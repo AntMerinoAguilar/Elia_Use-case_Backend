@@ -27,3 +27,5 @@ async function archiveToHistory(document, type) {
     console.error("Erreur lors de l'archivage dans History :", err);
   }
 }
+
+module.exports = {archiveToHistory};
