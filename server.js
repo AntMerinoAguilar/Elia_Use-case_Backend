@@ -19,6 +19,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+
+
 // Middleware
 const corsOptions = {
     origin: ["http://localhost:5173", "https://eDutygroupe2.vercel.app"], 
@@ -51,4 +53,4 @@ app.get("/", (req, res) => {
 app.use('/api', routes);
 
 // Démarrer le serveur
-app.listen(PORT, () => console.log(`Serveur lancé sur le port : ${PORT}`));
+app.listen(PORT, () => console.log(`Serveur lancé sur http://localhost:${PORT}`));

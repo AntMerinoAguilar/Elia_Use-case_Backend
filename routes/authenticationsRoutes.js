@@ -26,8 +26,9 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { id: agent._id, username: agent.username },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "10d" }
     );
+
 
     // Stocker le token dans un cookie
     res.cookie("token", token, {
@@ -36,10 +37,17 @@ router.post("/login", async (req, res) => {
       sameSite: "Lax", // Permet l'accès entre différents ports (5173 → 3000)
       // domain: "localhost", // Spécifie que le cookie appartient à localhost
       path: "/",  // Rend le cookie accessible sur toutes les routes
-      maxAge: 24 * 60 * 60 * 1000, 
+      maxAge: 10* 24 * 60 * 60 * 1000, 
   });
 
-  res.status(200).json({ message: "Connexion réussie" });
+  
+  // Renvoyer le token dans la réponse
+  res.status(200).json({
+    message: "Connexion réussie",
+    token,
+  });
+
+
 
   } catch (err) {
     console.error(err);
