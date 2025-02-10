@@ -3,7 +3,8 @@ const router = express.Router();
 const Request = require('../models/Request');
 const Shift = require('../models/Shift');
 const Notification = require('../models/Notification');
-const Agent = require('../models/Agent')
+const Agent = require('../models/Agent');
+const {archiveToHistory} = require('../controller/historyController');
 const requireAuthMiddleware = require("../middlewares/authMiddleware");
 
 //API REQUESTS
@@ -133,6 +134,15 @@ router.put('/:id/accept', requireAuthMiddleware, async (req, res) => {
         //Mettre à jour la demande comme "Approved"
         request.status = 'Approved';
         await request.save();
+        
+        //Archive dans l'historique quand Approved
+        console.log("Avant archivage de la request :", request);
+        await archiveToHistory(request, 'Request Approved');
+        console.log("Request archivée avec succès !");
+
+
+        //Supprimer la request quand archivée
+        await Request.findByIdAndDelete(requestId)
 
         //Notifications
         await Notification.insertMany([
