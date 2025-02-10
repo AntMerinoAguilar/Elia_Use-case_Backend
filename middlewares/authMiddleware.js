@@ -11,6 +11,10 @@ const requireAuthMiddleware = (req, res, next) => {
   try {
     // Vérifier et décoder le token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 🛡️ Ajout du log ici pour voir les infos extraites
+    console.log("🛡️ Agent extrait du JWT :", decoded);
+
     req.agent = decoded; // Stocker les infos de l'agent décodé dans la requête
     next();
   } catch (err) {
