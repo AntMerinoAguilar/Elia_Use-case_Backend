@@ -2,7 +2,7 @@
   "name": "elia_use-case_backend",
   "version": "1.0.0",
   "description": "Repo collaboratif pour le Back du projet",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",

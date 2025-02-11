@@ -28,9 +28,6 @@ async function archiveToHistory(document, type) {
     console.error("Erreur lors de l'archivage dans History :", err);
   }
 }
-
-<<<<<<< HEAD:controller/historyController.js
 module.exports = {archiveToHistory};
-=======
-module.exports = { archiveToHistory };
->>>>>>> 28aeba6847b780317d6270bfa038a490b0e35e55:controllers/historyController.js
+
+
