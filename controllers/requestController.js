@@ -20,6 +20,28 @@ const getRequests = async (req, res) => {
   }
 };
 
+// Fonction pour récupérer les demandes d'un agent spécifique (soit comme demandeur, soit comme cible)
+const getRequestsByAgent = async (req, res) => {
+  try {
+    const agentId = req.params.agentId;
+
+    const requests = await Request.find({
+      $or: [{ requesterId: agentId }, { targetAgentId: agentId }] // Récupère les requests où l'agent est demandeur ou cible
+    })
+      .populate("requesterId", "name surname code") // Infos du demandeur
+      .populate("shiftId") // Infos du shift concerné
+      .populate("targetAgentId", "name surname code") // Infos de l'agent cible
+      .sort({ createdAt: -1 }); // Trie les résultats du plus récent au plus ancien
+
+    res.status(200).json(requests);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des demandes de l'agent :", err);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération des demandes." });
+  }
+};
+
+
+
 
 
 // Fonction pour créer une demande de remplacement ou de swap
@@ -236,6 +258,7 @@ const acceptRequest = async (req, res) => {
 
 module.exports = {
   getRequests,
+  getRequestsByAgent,
   createRequest,
   acceptRequest,
 };
