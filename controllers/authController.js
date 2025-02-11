@@ -38,8 +38,8 @@ const login = async (req, res) => {
     // Stocker le token dans un cookie sécurisé
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // ⚠️ Doit être `true` en production avec HTTPS (process.env.NODE_ENV === "production")
-      sameSite: "none", // Permet l'accès entre différents ports (5173 → 3000)
+      secure: false, // ⚠️ Doit être `true` en production avec HTTPS (process.env.NODE_ENV === "production")
+      sameSite: "Lax", // Permet l'accès entre différents ports (5173 → 3000)
       /* domain: "localhost", */ // Spécifie que le cookie appartient à localhost
       path: "/", // Rend le cookie accessible sur toutes les routes
       maxAge: 10 * 24 * 60 * 60 * 1000, // 10 jours
