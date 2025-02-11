@@ -9,7 +9,7 @@ const unavailabilitySchema = new mongoose.Schema({
     endDate: { type: Date, required: true },
     relatedShiftId: { type: mongoose.Schema.Types.ObjectId, ref: 'Shift' },
     replacementRequested: { type: Boolean, default: true },
-    status: { type: String, enum: ['Pending', 'Confirmed', 'Rejected'], default: 'Pending' }
+    status: { type: String, enum: ['Pending', 'Confirmed', 'Replaced'], default: 'Pending' }
 }, { timestamps: true });
 
 const Unavailability = mongoose.model('Unavailability', unavailabilitySchema);
