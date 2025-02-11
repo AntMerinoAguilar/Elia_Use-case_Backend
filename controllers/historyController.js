@@ -1,4 +1,4 @@
-const History = require('../models/History');  
+const History = require("../models/History");
 
 //Fonction pour ajouter une requête ou une indisponibilité dans History
 async function archiveToHistory(document, type) {
@@ -16,7 +16,8 @@ async function archiveToHistory(document, type) {
     if (document.startDate) historyData.startDate = document.startDate;
     if (document.endDate) historyData.endDate = document.endDate;
     if (document.requesterId) historyData.requesterId = document.requesterId;
-    if (document.targetAgentId) historyData.targetAgentId = document.targetAgentId;
+    if (document.targetAgentId)
+      historyData.targetAgentId = document.targetAgentId;
     if (document.status) historyData.status = document.status;
     if (document.requestType) historyData.requestType = document.requestType;
 
@@ -28,4 +29,8 @@ async function archiveToHistory(document, type) {
   }
 }
 
+<<<<<<< HEAD:controller/historyController.js
 module.exports = {archiveToHistory};
+=======
+module.exports = { archiveToHistory };
+>>>>>>> 28aeba6847b780317d6270bfa038a490b0e35e55:controllers/historyController.js
