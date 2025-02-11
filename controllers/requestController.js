@@ -4,6 +4,24 @@ const Notification = require("../models/Notification");
 const Agent = require("../models/Agent");
 const { archiveToHistory } = require("./historyController");
 
+// Fonction pour récupérer toutes les demandes, triées par la plus récente
+const getRequests = async (req, res) => {
+  try {
+    const requests = await Request.find()
+      .populate("requesterId", "name surname code") // Récupère nom, prénom et code du demandeur
+      .populate("shiftId") // Récupère le shift lié
+      .populate("targetAgentId", "name surname code") // Récupère nom, prénom et code de l'agent cible (si applicable)
+      .sort({ createdAt: -1 }); // Trie les résultats du plus récent au plus ancien
+
+    res.status(200).json(requests);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des demandes :", err);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération des demandes." });
+  }
+};
+
+
+
 // Fonction pour créer une demande de remplacement ou de swap
 const createRequest = async (req, res) => {
   try {
@@ -217,6 +235,7 @@ const acceptRequest = async (req, res) => {
 };
 
 module.exports = {
+  getRequests,
   createRequest,
   acceptRequest,
 };
