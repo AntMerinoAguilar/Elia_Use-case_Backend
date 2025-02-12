@@ -1,5 +1,5 @@
 
-require('dotenv').config(); // Charger les variables d'environnement
+require('dotenv').config(); 
 
 const mongoose = require('mongoose');
 const Agent = require('../models/Agent');
@@ -7,22 +7,18 @@ const Shift = require('../models/Shift');
 
 async function populateCalendar() {
     try {
-        console.log("🔄 Connexion à MongoDB avec URI :", process.env.MONGO_URI);
-
+        
         // Vérifier si l'URI est bien définie
         if (!process.env.MONGO_URI) {
-            throw new Error("❌ MONGO_URI est undefined. Vérifiez votre fichier .env !");
+            throw new Error("MONGO_URI est undefined. Vérifiez votre fichier .env !");
         }
 
         await mongoose.connect(process.env.MONGO_URI);
-
-        console.log("✅ Connecté à MongoDB");
 
         // Récupérer tous les agents triés
         const agents = await Agent.find().sort({ _id: 1 });
 
         if (agents.length === 0) {
-            console.log("❌ Aucun agent trouvé !");
             return;
         }
 
@@ -57,11 +53,10 @@ async function populateCalendar() {
         }
 
         await Shift.insertMany(shiftsToInsert);
-        console.log(`✅ ${shiftsToInsert.length} shifts ajoutés avec succès !`);
+        
 
         mongoose.connection.close();
     } catch (error) {
-        console.error("❌ Erreur lors de la population des shifts :", error);
         mongoose.connection.close();
     }
 }
