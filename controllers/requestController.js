@@ -31,7 +31,7 @@ const getRequestsByAgent = async (req, res) => {
       .populate("requesterId", "name surname code") // Infos du demandeur
       .populate("shiftId") // Infos du shift concerné
       .populate("targetAgentId", "name surname code") // Infos de l'agent cible
-      .sort({ createdAt: -1 }); // Trie les résultats du plus récent au plus ancien
+      .sort({ startTime: -1 }); // Trie les résultats du plus récent au plus ancien
 
     res.status(200).json(requests);
   } catch (err) {
@@ -39,8 +39,6 @@ const getRequestsByAgent = async (req, res) => {
     res.status(500).json({ error: "Erreur serveur lors de la récupération des demandes." });
   }
 };
-
-
 
 
 
@@ -57,6 +55,7 @@ const createRequest = async (req, res) => {
       targetAgentId,
     } = req.body;
 
+    // Vérifications de base
     if (!timeSlot || !timeSlot.startTime || !timeSlot.endTime) {
       return res.status(400).json({
         error: "Le créneau horaire souhaité (timeSlot) est obligatoire.",
@@ -70,6 +69,20 @@ const createRequest = async (req, res) => {
       return res.status(400).json({
         error:
           "Pour un Swap, il faut proposer au moins un créneau de disponibilité (availableSlots).",
+      });
+    }
+
+    // Vérifier que l'agent possède bien le shift et que le timeSlot est strictement inclus
+    const existingShift = await Shift.findOne({
+      _id: shiftId,
+      agentId: requesterId,
+      startDate: { $lte: new Date(timeSlot.startTime) },
+      endDate: { $gte: new Date(timeSlot.endTime) }
+    });
+
+    if (!existingShift) {
+      return res.status(400).json({
+        error: "Vous ne possédez pas ce shift ou le créneau demandé n'est pas strictement inclus dans ce shift.",
       });
     }
 
@@ -104,7 +117,6 @@ const createRequest = async (req, res) => {
     } else {
       // Cas 2: Swap ouvert ou Replacement ouvert -> Tous les autres agents sauf le demandeur reçoivent une notification
       const agents = await Agent.find({ _id: { $ne: requesterId } });
-
       const notifications = agents.map((agent) => ({
         recipientId: agent._id,
         type: requestType === "Swap" ? "Swap Request" : "Replacement Request",
@@ -112,7 +124,6 @@ const createRequest = async (req, res) => {
           requester.code
         }.`,
       }));
-
       await Notification.insertMany(notifications);
     }
 
@@ -131,110 +142,213 @@ const acceptRequest = async (req, res) => {
     const { agentId, selectedSlot } = req.body;
     const requestId = req.params.id.trim();
 
-    //Récupérer la demande et les infos associées
+    // Récupérer la demande et les infos associées
     const request = await Request.findById(requestId).populate("shiftId");
     if (!request) return res.status(404).json({ error: "Demande non trouvée" });
 
-    const { requestType, targetAgentId, requesterId, shiftId, availableSlots } = request;
+    const { requestType, targetAgentId, requesterId, shiftId, availableSlots, timeSlot } = request;
 
-    //Vérifier que l'agent qui accepte existe
+    // Vérifier que l'agent qui accepte existe
     const acceptingAgent = await Agent.findById(agentId);
     if (!acceptingAgent)
       return res.status(404).json({ error: "L'agent qui accepte n'existe pas." });
 
-    //Vérifier que l'agent demandeur existe
+    // Vérifier que l'agent demandeur existe
     const requesterAgent = await Agent.findById(requesterId);
     if (!requesterAgent)
       return res.status(404).json({ error: "L'agent demandeur n'existe pas." });
 
-    //Vérifier si l'agent a le droit d'accepter (si la demande est ciblée)
+    // Vérifier si l'agent a le droit d'accepter (si la demande est ciblée)
     if (targetAgentId && targetAgentId.toString() !== agentId) {
       return res.status(403).json({ error: "Vous n'êtes pas l'agent cible de cette demande." });
     }
 
-    //Gestion du Swap
+    // Fonction helper pour créer un nouveau shift
+    const createShift = async (startDate, endDate, agentId, agentCode, replacement = null) => {
+      const shiftData = {
+        agentId,
+        agentCode,
+        startDate,
+        endDate,
+        status: 'Assigned'
+      };
+      
+      if (replacement) {
+        shiftData.replacements = [{
+          replacementId: replacement.agentId,
+          startTime: startDate,
+          endTime: endDate,
+          status: 'Confirmed'
+        }];
+      }
+      
+      return await Shift.create(shiftData);
+    };
+
+    // Gestion du Swap
     if (requestType === "Swap") {
       if (!selectedSlot)
         return res.status(400).json({ error: "Un créneau doit être sélectionné pour un swap." });
 
-      //Vérifier que le créneau choisi est bien dans `availableSlots`
-      const validSlot = availableSlots.some(
-        (slot) =>
-          new Date(selectedSlot.startTime).getTime() === new Date(slot.startTime).getTime() &&
-          new Date(selectedSlot.endTime).getTime() === new Date(slot.endTime).getTime()
-      );
+      // Nouvelle logique de validation du créneau
+      const selectedStartTime = new Date(selectedSlot.startTime).getTime();
+      const selectedEndTime = new Date(selectedSlot.endTime).getTime();
+      
+      const validSlot = availableSlots.some(slot => {
+        const slotStartTime = new Date(slot.startTime).getTime();
+        const slotEndTime = new Date(slot.endTime).getTime();
+        
+        // Vérifie si le créneau sélectionné est compris dans le créneau disponible
+        return selectedStartTime >= slotStartTime && selectedEndTime <= slotEndTime;
+      });
+
       if (!validSlot)
         return res.status(400).json({ error: "Créneau choisi invalide." });
 
-      // Vérifier que la durée du `selectedSlot` correspond à `timeSlot`
-      const timeSlotDuration = new Date(request.timeSlot.endTime).getTime() - new Date(request.timeSlot.startTime).getTime();
-      const selectedSlotDuration = new Date(selectedSlot.endTime).getTime() - new Date(selectedSlot.startTime).getTime();
+      // Vérifier que la durée du selectedSlot correspond à timeSlot
+      const timeSlotDuration = new Date(timeSlot.endTime).getTime() - new Date(timeSlot.startTime).getTime();
+      const selectedSlotDuration = selectedEndTime - selectedStartTime;
       if (selectedSlotDuration !== timeSlotDuration) {
         return res.status(400).json({ error: "La durée du créneau choisi ne correspond pas à la durée du timeSlot initial." });
       }
 
-      //Trouver le shift du demandeur
+      // Trouver les shifts concernés
       const requesterShift = await Shift.findById(shiftId._id);
       if (!requesterShift) return res.status(404).json({ error: "Shift du demandeur non trouvé." });
 
-      //Trouver le shift de l'agent qui accepte (pas de recherche forcée, il est déjà validé par `availableSlots`)
       const acceptingAgentShift = await Shift.findOne({
         agentId: agentId,
-        startDate: { $gte: selectedSlot.startTime, $lt: selectedSlot.endTime }
+        startDate: { $lte: selectedSlot.endTime },
+        endDate: { $gte: selectedSlot.startTime }
       });
-
       if (!acceptingAgentShift)
         return res.status(400).json({ error: "L'agent cible n'a pas de shift correspondant." });
 
-      //Échanger les shifts entre le demandeur et l'acceptant
-      await Shift.findByIdAndUpdate(requesterShift._id, {
-        agentId: acceptingAgent._id,
-        agentCode: acceptingAgent.code,
-      });
+      // Créer les nouveaux shifts pour le demandeur
+      if (new Date(requesterShift.startDate) < new Date(timeSlot.startTime)) {
+        await createShift(
+          requesterShift.startDate,
+          timeSlot.startTime,
+          requesterId,
+          requesterAgent.code
+        );
+      }
 
-      await Shift.findByIdAndUpdate(acceptingAgentShift._id, {
-        agentId: requesterAgent._id,
-        agentCode: requesterAgent.code,
-      });
+      await createShift(
+        timeSlot.startTime,
+        timeSlot.endTime,
+        agentId,
+        acceptingAgent.code,
+        { agentId: requesterId }
+      );
 
-      //Mettre à jour la demande avec l'agent cible (si swap ouvert)
-      if (!targetAgentId) request.targetAgentId = agentId;
+      if (new Date(requesterShift.endDate) > new Date(timeSlot.endTime)) {
+        await createShift(
+          timeSlot.endTime,
+          requesterShift.endDate,
+          requesterId,
+          requesterAgent.code
+        );
+      }
+
+      // Créer les nouveaux shifts pour l'agent acceptant
+      if (new Date(acceptingAgentShift.startDate) < new Date(selectedSlot.startTime)) {
+        await createShift(
+          acceptingAgentShift.startDate,
+          selectedSlot.startTime,
+          agentId,
+          acceptingAgent.code
+        );
+      }
+
+      await createShift(
+        selectedSlot.startTime,
+        selectedSlot.endTime,
+        requesterId,
+        requesterAgent.code,
+        { agentId: agentId }
+      );
+
+      if (new Date(acceptingAgentShift.endDate) > new Date(selectedSlot.endTime)) {
+        await createShift(
+          selectedSlot.endTime,
+          acceptingAgentShift.endDate,
+          agentId,
+          acceptingAgent.code
+        );
+      }
+
+      // Supprimer les shifts originaux
+      await Shift.deleteOne({ _id: requesterShift._id });
+      await Shift.deleteOne({ _id: acceptingAgentShift._id });
     }
 
-    //Gestion du Replacement
+    // Gestion du Replacement
     if (requestType === "Replacement") {
-      const existingShift = await Shift.findOne({
+      const existingShift = await Shift.findById(shiftId._id);
+      if (!existingShift) return res.status(404).json({ error: "Shift non trouvé." });
+
+      // Vérifier que l'agent acceptant n'a pas déjà un shift qui chevauche
+      const conflictingShift = await Shift.findOne({
         agentId,
-        startDate: shiftId.startDate,
-        endDate: shiftId.endDate,
+        $or: [
+          {
+            startDate: { $lt: timeSlot.endTime },
+            endDate: { $gt: timeSlot.startTime }
+          }
+        ]
       });
 
-      if (existingShift)
+      if (conflictingShift)
         return res.status(400).json({ error: "Vous avez déjà un shift à ce moment-là." });
 
-      //Calculer la durée du shift en heures
-      const shiftDurationMs = new Date(shiftId.endDate) - new Date(shiftId.startDate);
-      const shiftDurationHours = shiftDurationMs / (1000 * 60 * 60);
+      // Calculer la durée du remplacement en heures
+      const replacementDurationMs = new Date(timeSlot.endTime) - new Date(timeSlot.startTime);
+      const replacementDurationHours = replacementDurationMs / (1000 * 60 * 60);
 
-      //Mettre à jour la balance des agents
-      await Agent.findByIdAndUpdate(requesterId, { $inc: { balance: -shiftDurationHours } });
-      await Agent.findByIdAndUpdate(agentId, { $inc: { balance: shiftDurationHours } });
+      // Mettre à jour la balance des agents
+      await Agent.findByIdAndUpdate(requesterId, { $inc: { balance: -replacementDurationHours } });
+      await Agent.findByIdAndUpdate(agentId, { $inc: { balance: replacementDurationHours } });
 
-      //Mettre à jour le shift avec le nouvel agent
-      await Shift.findByIdAndUpdate(shiftId._id, {
-        agentId: acceptingAgent._id,
-        agentCode: acceptingAgent.code,
-      });
+      // Créer les nouveaux shifts
+      if (new Date(existingShift.startDate) < new Date(timeSlot.startTime)) {
+        await createShift(
+          existingShift.startDate,
+          timeSlot.startTime,
+          requesterId,
+          requesterAgent.code
+        );
+      }
+
+      await createShift(
+        timeSlot.startTime,
+        timeSlot.endTime,
+        agentId,
+        acceptingAgent.code,
+        { agentId: requesterId }
+      );
+
+      if (new Date(existingShift.endDate) > new Date(timeSlot.endTime)) {
+        await createShift(
+          timeSlot.endTime,
+          existingShift.endDate,
+          requesterId,
+          requesterAgent.code
+        );
+      }
+
+      // Supprimer le shift original
+      await Shift.deleteOne({ _id: existingShift._id });
     }
 
-    //Mettre à jour la demande comme "Approved"
+    // Mettre à jour la demande comme "Approved"
     request.status = "Approved";
     await request.save();
 
-    //Archiver la demande dans l'historique
+    // Archiver la demande dans l'historique
     await archiveToHistory(request, "Request Approved");
 
-    //Supprimer la request après archivage
+    // Supprimer la request après archivage
     await Request.findByIdAndDelete(requestId);
 
     // Envoyer des notifications
@@ -252,7 +366,7 @@ const acceptRequest = async (req, res) => {
     ]);
 
     res.json({
-      message: `${requestType} validé et shift mis à jour.`,
+      message: `${requestType} validé et shifts mis à jour.`,
       updatedRequest: request,
     });
   } catch (err) {
@@ -260,11 +374,6 @@ const acceptRequest = async (req, res) => {
     res.status(500).json({ error: "Erreur serveur lors de l'acceptation de la demande." });
   }
 };
-
-
-
-
-
 
 module.exports = {
   getRequests,

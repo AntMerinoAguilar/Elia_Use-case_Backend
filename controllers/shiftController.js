@@ -24,7 +24,8 @@ const getAllShifts = async (req, res) => {
   try {
     const shifts = await Shift.find()
       .populate("agentId")
-      .populate("replacements.replacementId");
+      .populate("replacements.replacementId")
+      .sort({ startDate: -1 });
     res.json(shifts);
   } catch (err) {
     res.status(500).json({ error: "Erreur serveur" });
