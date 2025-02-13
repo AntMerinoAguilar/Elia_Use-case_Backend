@@ -11,6 +11,23 @@ const getAllAgents = async (req, res) => {
   }
 };
 
+// Récupérer les informations de l'agent connecté
+const getCurrentAgent = async (req, res) => {
+  try {
+    const agentId = req.agent.id; // Récupéré depuis le token JWT via le middleware
+    const agent = await Agent.findById(agentId).select("-password"); // Exclure le mot de passe
+
+    if (!agent) {
+      return res.status(404).json({ message: "Agent non trouvé" });
+    }
+
+    res.status(200).json(agent);
+  } catch (err) {
+    console.error("Erreur lors de la récupération de l'agent connecté :", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 // Récupérer un agent par ID
 const getAgentById = async (req, res) => {
   try {
@@ -88,6 +105,7 @@ const deleteAgent = async (req, res) => {
 
 module.exports = {
   getAllAgents,
+  getCurrentAgent,
   getAgentById,
   createAgent,
   updateAgent,
