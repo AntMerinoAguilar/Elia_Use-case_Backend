@@ -7,7 +7,6 @@ const cookieParser = require("cookie-parser"); // Importer cookie-parser
 // Imports des models
 const Agent = require('./models/Agent');
 const Shift = require('./models/Shift');
-const Unavailability = require('./models/Unavailability');
 const Request = require('./models/Request');
 
 // Importer les routes via le fichier routes/index.js

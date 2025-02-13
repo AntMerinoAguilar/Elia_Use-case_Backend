@@ -18,7 +18,7 @@ const requestSchema = new mongoose.Schema({
     endTime: Date
   }],
 
-  requestType: { type: String, enum: ['Replacement', 'Swap'], required: true },
+  requestType: { type: String, enum: ['Replacement', 'Urgent Replacement', 'Swap'], required: true },
   status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
   message: String,
   
