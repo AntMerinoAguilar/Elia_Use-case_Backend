@@ -20,6 +20,8 @@ const getRequests = async (req, res) => {
   }
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Fonction pour récupérer les demandes d'un agent spécifique (soit comme demandeur, soit comme cible)
 const getRequestsByAgent = async (req, res) => {
   try {
@@ -40,7 +42,7 @@ const getRequestsByAgent = async (req, res) => {
   }
 };
 
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Fonction pour créer une demande de remplacement ou de swap
 const createRequest = async (req, res) => {
@@ -136,6 +138,8 @@ const createRequest = async (req, res) => {
   }
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Fonction pour accepter une demande de Swap ou de Remplacement
 const acceptRequest = async (req, res) => {
   try {
@@ -163,26 +167,23 @@ const acceptRequest = async (req, res) => {
       return res.status(403).json({ error: "Vous n'êtes pas l'agent cible de cette demande." });
     }
 
-    // Fonction helper pour créer un nouveau shift
-    const createShift = async (startDate, endDate, agentId, agentCode, replacement = null) => {
-      const shiftData = {
-        agentId,
-        agentCode,
-        startDate,
-        endDate,
-        status: 'Assigned'
-      };
-      
-      if (replacement) {
-        shiftData.replacements = [{
-          replacementId: replacement.agentId,
-          startTime: startDate,
-          endTime: endDate,
-          status: 'Confirmed'
-        }];
+      //Déclaration de la fonction pour créer des nouveaux shifts morcellés
+
+      const createShiftIfValid = async (startDate, endDate, agent, replacementAgent = null) => {
+      if (new Date(startDate) < new Date(endDate)) {  // Vérifie que le shift a une durée valide
+        const shiftData = {
+          agentId: agent._id,
+          agentCode: agent.code,
+          startDate,
+          endDate,
+          status: "Assigned",
+          replacements: replacementAgent
+            ? [{ replacementId: replacementAgent._id, startTime: startDate, endTime: endDate, status: "Confirmed" }]
+            : []
+        };
+
+        return await Shift.create(shiftData);
       }
-      
-      return await Shift.create(shiftData);
     };
 
     // Gestion du Swap
@@ -224,69 +225,28 @@ const acceptRequest = async (req, res) => {
       if (!acceptingAgentShift)
         return res.status(400).json({ error: "L'agent cible n'a pas de shift correspondant." });
 
+
       // Créer les nouveaux shifts pour le demandeur
-      if (new Date(requesterShift.startDate) < new Date(timeSlot.startTime)) {
-        await createShift(
-          requesterShift.startDate,
-          timeSlot.startTime,
-          requesterId,
-          requesterAgent.code
-        );
-      }
-
-      await createShift(
-        timeSlot.startTime,
-        timeSlot.endTime,
-        agentId,
-        acceptingAgent.code,
-        { agentId: requesterId }
-      );
-
-      if (new Date(requesterShift.endDate) > new Date(timeSlot.endTime)) {
-        await createShift(
-          timeSlot.endTime,
-          requesterShift.endDate,
-          requesterId,
-          requesterAgent.code
-        );
-      }
+      await createShiftIfValid(requesterShift.startDate, timeSlot.startTime, requesterAgent); //Création d'un shift pour l'agent initial avant la période de swap (s'il y a des heures avant)
+      await createShiftIfValid(timeSlot.startTime, timeSlot.endTime, acceptingAgent, requesterAgent); //Création du shift pendant la période de swap et assignation à l'agent acceptant.
+      await createShiftIfValid(timeSlot.endTime, requesterShift.endDate, requesterAgent); //Création d'un shift pour l'agent initial après la période de swap (s'il y a des heures après).
 
       // Créer les nouveaux shifts pour l'agent acceptant
-      if (new Date(acceptingAgentShift.startDate) < new Date(selectedSlot.startTime)) {
-        await createShift(
-          acceptingAgentShift.startDate,
-          selectedSlot.startTime,
-          agentId,
-          acceptingAgent.code
-        );
-      }
+      await createShiftIfValid(acceptingAgentShift.startDate, selectedSlot.startTime, acceptingAgent);  //Création d'un shift pour l'agent acceptant avant la période de swap (s'il y a des heures avant)
+      await createShiftIfValid(selectedSlot.startTime, selectedSlot.endTime, requesterAgent, acceptingAgent);  //Création du shift pendant la période de swap et assignation à l'agent initial.
+      await createShiftIfValid(selectedSlot.endTime, acceptingAgentShift.endDate, acceptingAgent);    //Création d'un shift pour l'agent acceptant après la période de swap (s'il y a des heures après).
 
-      await createShift(
-        selectedSlot.startTime,
-        selectedSlot.endTime,
-        requesterId,
-        requesterAgent.code,
-        { agentId: agentId }
-      );
 
-      if (new Date(acceptingAgentShift.endDate) > new Date(selectedSlot.endTime)) {
-        await createShift(
-          selectedSlot.endTime,
-          acceptingAgentShift.endDate,
-          agentId,
-          acceptingAgent.code
-        );
-      }
-
-      // Supprimer les shifts originaux
-      await Shift.deleteOne({ _id: requesterShift._id });
-      await Shift.deleteOne({ _id: acceptingAgentShift._id });
-    }
+            // Supprimer les shifts originaux
+            await Shift.deleteOne({ _id: requesterShift._id });
+            await Shift.deleteOne({ _id: acceptingAgentShift._id });
+          }
 
     // Gestion du Replacement
     if (requestType === "Replacement") {
       const existingShift = await Shift.findById(shiftId._id);
       if (!existingShift) return res.status(404).json({ error: "Shift non trouvé." });
+
 
       // Vérifier que l'agent acceptant n'a pas déjà un shift qui chevauche
       const conflictingShift = await Shift.findOne({
@@ -310,32 +270,10 @@ const acceptRequest = async (req, res) => {
       await Agent.findByIdAndUpdate(requesterId, { $inc: { balance: -replacementDurationHours } });
       await Agent.findByIdAndUpdate(agentId, { $inc: { balance: replacementDurationHours } });
 
-      // Créer les nouveaux shifts
-      if (new Date(existingShift.startDate) < new Date(timeSlot.startTime)) {
-        await createShift(
-          existingShift.startDate,
-          timeSlot.startTime,
-          requesterId,
-          requesterAgent.code
-        );
-      }
-
-      await createShift(
-        timeSlot.startTime,
-        timeSlot.endTime,
-        agentId,
-        acceptingAgent.code,
-        { agentId: requesterId }
-      );
-
-      if (new Date(existingShift.endDate) > new Date(timeSlot.endTime)) {
-        await createShift(
-          timeSlot.endTime,
-          existingShift.endDate,
-          requesterId,
-          requesterAgent.code
-        );
-      }
+      // Création des shifts pour le Replacement
+      await createShiftIfValid(existingShift.startDate, timeSlot.startTime, requesterAgent); //Création d'un shift pour l'agent initial avant la période de remplacement (s'il y a des heures avant)
+      await createShiftIfValid(timeSlot.startTime, timeSlot.endTime, acceptingAgent, requesterAgent); //Création du shift pendant la période de remplacement et assignation à l'agent acceptant.
+      await createShiftIfValid(timeSlot.endTime, existingShift.endDate, requesterAgent); //Création d'un shift pour l'agent initial après la période de remplacement (s'il y a des heures après)
 
       // Supprimer le shift original
       await Shift.deleteOne({ _id: existingShift._id });

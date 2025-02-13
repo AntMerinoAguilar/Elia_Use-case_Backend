@@ -10,7 +10,7 @@ async function populateCalendar() {
         
         // Vérifier si l'URI est bien définie
         if (!process.env.MONGO_URI) {
-            throw new Error("MONGO_URI est undefined. Vérifiez votre fichier .env !");
+            throw new Error("MONGO_URI est undefined !");
         }
 
         await mongoose.connect(process.env.MONGO_URI);
