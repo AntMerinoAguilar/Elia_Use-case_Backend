@@ -4,8 +4,8 @@ const requireAuthMiddleware = require("../middlewares/authMiddleware");
 const requestController = require('../controllers/requestController');
 
 // Routes pour les requêtes
-router.get("/", requestController.getRequests);
-router.get("/:agentId", requestController.getRequestsByAgent);
+router.get("/",requireAuthMiddleware, requestController.getRequests);
+router.get("/:agentId",requireAuthMiddleware, requestController.getRequestsByAgent);
 router.post('/', requireAuthMiddleware, requestController.createRequest);
 router.put('/:id/accept', requireAuthMiddleware, requestController.acceptRequest);
 
