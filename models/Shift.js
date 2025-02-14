@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 
 const shiftSchema = new mongoose.Schema({
-    agentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', required: true },
+    agentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent' },
     agentCode: {type: String, required: true},
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    status: { type: String, enum: ['Assigned', 'Partially Replaced', 'Fully Replaced'], default: 'Assigned' },
+    status: { type: String, enum: ['Assigned', 'Partially Replaced', 'Fully Replaced','Available'], default: 'Assigned' },
     replacements: [{
         replacementId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent' },
         startTime: Date,
         endTime: Date,
-        status: { type: String, enum: ['Pending', 'Confirmed', 'Rejected'], default: 'Pending' }
+        status: { type: String, enum: ['Pending', 'Confirmed', 'Rejected',], default: 'Pending' }
     }]
 }, { timestamps: true });
 
