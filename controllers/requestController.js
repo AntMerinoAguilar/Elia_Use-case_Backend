@@ -331,123 +331,146 @@ const acceptRequest = async (req, res) => {
       await Shift.deleteOne({ _id: existingShift._id });
     }
 
-        // Gestion du "Urgent Replacement"
-      if (requestType === "Urgent Replacement") {
-      // Vérifier que le créneau timeSlot est bien défini
-      if (!timeSlot || !timeSlot.startTime || !timeSlot.endTime) {
+      
+
+
+          // Gestion du "Urgent Replacement"
+
+
+
+      //Fonction pour créer une nouvelle request de remplacement urgent pour un shift disponible
+    const createRequestForAvailableShift = async (shift, requesterId) => {
+      if (!shift || !shift._id) return; // Vérifie que le shift existe
+
+      const newRequest = new Request({
+       requesterId,
+        shiftId: shift._id, // Assigner le shift ID correctement
+        timeSlot: { startTime: shift.startDate, endTime: shift.endDate },
+        requestType: "Urgent Replacement",
+        message: "Un remplacement urgent est toujours disponible.",
+        targetAgentId: null, // Aucun agent ciblé pour le moment
+      });
+
+      await newRequest.save();
+
+      // Envoyer des notifications aux 5 autres agents
+      const agents = await Agent.find({ _id: { $ne: requesterId } }).limit(5);
+      const notifications = agents.map(agent => ({
+        recipientId: agent._id,
+        type: "Urgent Replacement Available",
+        message: `Un remplacement urgent est toujours disponible du ${new Date(shift.startDate).toLocaleString()} au ${new Date(shift.endDate).toLocaleString()}.`
+      }));
+
+      await Notification.insertMany(notifications);
+    };
+
+    // ***Gestion du "Urgent Replacement"***
+    if (requestType === "Urgent Replacement") {
+     if (!timeSlot || !timeSlot.startTime || !timeSlot.endTime) {
         return res.status(400).json({ error: "Le créneau du remplacement urgent est invalide." });
       }
 
-      // Trouver le shift "Disponible" correspondant au timeSlot
       const availableShift = await Shift.findOne({
         startDate: timeSlot.startTime,
         endDate: timeSlot.endTime,
         status: "Available" // Shift temporairement libre
       });
 
-    if (selectedSlot) {
-      const selectedStart = new Date(selectedSlot.startTime);
-      const selectedEnd = new Date(selectedSlot.endTime);
-
-      // Vérifier que le selectedSlot est bien compris dans le shift disponible
-      if (selectedStart < new Date(availableShift.startDate) || selectedEnd > new Date(availableShift.endDate)) {
-        return res.status(400).json({ error: "Le créneau sélectionné est invalide." });
-      }
-
-      // Supprimer l'ancien shift disponible
-      await Shift.deleteOne({ _id: availableShift._id });
-
-      // Shift "Available" AVANT le créneau sélectionné (si nécessaire)
-      await createShiftIfValid(availableShift.startDate, selectedStart, null);
-
-      // Shift attribué à l'agent acceptant (Selected Slot)
-      await createShiftIfValid(selectedStart, selectedEnd, acceptingAgent);
-
-      // Shift "Available" APRÈS le créneau sélectionné (si nécessaire)
-      await createShiftIfValid(selectedEnd, availableShift.endDate, null);
-
-      // Mettre à jour la demande comme "Approved"
-      request.status = "Approved";
-      await request.save();
-
-      // Archiver la demande dans l'historique
-      await archiveToHistory(request, "Urgent Replacement Accepted");
-
-      // Supprimer la request après archivage
-      await Request.findByIdAndDelete(requestId);
-
-      // Envoyer des notifications
-      await Notification.insertMany([
-        {
-          recipientId: requesterId,
-          type: "Status Update",
-          message: `Votre demande de remplacement urgent a été partiellement acceptée par ${acceptingAgent.code}.`,
-        },
-        {
-          recipientId: acceptingAgent._id,
-          type: "Status Update",
-          message: `Vous avez accepté une partie du remplacement urgent pour le shift de ${requesterAgent.code}.`,
-        },
-      ]);
-
-      return res.json({
-        message: `Remplacement urgent validé partiellement. Le shift a été attribué à ${acceptingAgent.code}.`,
-        updatedRequest: request,
-      });
-    }
-
-
       if (!availableShift) {
         return res.status(404).json({ error: "Le shift à remplacer n'est plus disponible." });
+      }
+
+      if (selectedSlot) {
+        const selectedStart = new Date(selectedSlot.startTime);
+        const selectedEnd = new Date(selectedSlot.endTime);
+
+        if (selectedStart < new Date(availableShift.startDate) || selectedEnd > new Date(availableShift.endDate)) {
+          return res.status(400).json({ error: "Le créneau sélectionné est invalide." });
+        }
+
+        await Shift.deleteOne({ _id: availableShift._id });
+
+        let newShifts = [];
+
+        // Shift "Available" AVANT le créneau sélectionné (si nécessaire)
+        const shiftBefore = await createShiftIfValid(availableShift.startDate, selectedStart, null);
+        if (shiftBefore) newShifts.push(shiftBefore);
+
+        // Shift attribué à l'agent acceptant (Selected Slot)
+        const shiftAssigned = await createShiftIfValid(selectedStart, selectedEnd, acceptingAgent);
+
+        // Shift "Available" APRÈS le créneau sélectionné (si nécessaire)
+        const shiftAfter = await createShiftIfValid(selectedEnd, availableShift.endDate, null);
+        if (shiftAfter) newShifts.push(shiftAfter);
+
+        // Créer des nouvelles requests pour les shifts "Available" restants
+        for (const shift of newShifts) {
+          await createRequestForAvailableShift(shift, requesterId);
+        }
+
+        request.status = "Approved";
+        await request.save();
+        await archiveToHistory(request, "Urgent Replacement Accepted");
+        await Request.findByIdAndDelete(requestId);
+
+        await Notification.insertMany([
+          {
+            recipientId: requesterId,
+            type: "Status Update",
+            message: `Votre demande de remplacement urgent a été partiellement acceptée par ${acceptingAgent?.code || "un agent"}.`,
+          },
+          {
+            recipientId: acceptingAgent?._id,
+        type: "Status Update",
+          message: `Vous avez accepté une partie du remplacement urgent pour le shift de ${requesterAgent?.code || "un agent"}.`,
+          },
+        ]);
+
+        return res.json({
+          message: `Remplacement urgent validé partiellement. Le shift a été attribué à ${acceptingAgent?.code || "un agent"}.`,
+          updatedRequest: request,
+        });
       }
 
       // Vérifier que l'agent acceptant n'a pas déjà un shift qui chevauche
       const conflictingShift = await Shift.findOne({
         agentId,
-        $or: [
-          { startDate: { $lt: timeSlot.endTime }, endDate: { $gt: timeSlot.startTime } }
-        ]
+        $or: [{ startDate: { $lt: timeSlot.endTime }, endDate: { $gt: timeSlot.startTime } }]
       });
 
       if (conflictingShift) {
         return res.status(400).json({ error: "Vous avez déjà un shift à ce moment-là." });
       }
 
-      // Assignation du shift à l'agent acceptant
       availableShift.agentId = agentId;
       availableShift.agentCode = acceptingAgent.code;
       availableShift.status = "Assigned";
       await availableShift.save();
 
-      // Mettre à jour la demande comme "Approved"
       request.status = "Approved";
       await request.save();
-
-      // Archiver la demande dans l'historique
       await archiveToHistory(request, "Urgent Replacement Accepted");
-
-      // Supprimer la request après archivage
       await Request.findByIdAndDelete(requestId);
 
-      // Envoyer des notifications
       await Notification.insertMany([
         {
           recipientId: requesterId,
           type: "Status Update",
-          message: `Votre demande de remplacement urgent a été acceptée par ${acceptingAgent.code}.`,
+          message: `Votre demande de remplacement urgent a été acceptée par ${acceptingAgent?.code || "un agent"}.`,
         },
         {
-          recipientId: acceptingAgent._id,
+          recipientId: acceptingAgent?._id,
           type: "Status Update",
-          message: `Vous avez accepté un remplacement urgent pour le shift de ${requesterAgent.code}.`,
+          message: `Vous avez accepté un remplacement urgent pour le shift de ${requesterAgent?.code || "un agent"}.`,
         },
       ]);
 
       return res.json({
-        message: `Remplacement urgent validé. Le shift a été assigné à ${acceptingAgent.code}.`,
+        message: `Remplacement urgent validé. Le shift a été assigné à ${acceptingAgent?.code || "un agent"}.`,
         updatedRequest: request,
       });
     }
+
 
       // Mettre à jour la demande comme "Approved"
       request.status = "Approved";
@@ -482,11 +505,7 @@ const acceptRequest = async (req, res) => {
       res.status(500).json({ error: "Erreur serveur lors de l'acceptation de la demande." });
     }
 
-  return res.json({
-      message: `Remplacement urgent validé. Le shift a été assigné à ${acceptingAgent.code}.`,
-      updatedRequest: request,
-    });
-  }
+}
 
 module.exports = {
   getRequests,
