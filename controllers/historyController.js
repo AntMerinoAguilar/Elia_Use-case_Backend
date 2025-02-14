@@ -28,6 +28,46 @@ async function archiveToHistory(document, type) {
     console.error("Erreur lors de l'archivage dans History :", err);
   }
 }
-module.exports = {archiveToHistory};
+
+  const getHistory = async (req, res) => {
+  try {
+    const history = await History.find();
+    res.status(200).json(history);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+const getHistoryByAgent = async (req, res) => {
+ 
+
+  try {
+    const agentId = req.params.id;
+   
+
+    //Récupérer l'historique où l'agent est demandeur OU cible
+    const history = await History.find({
+      $or: [{ requesterId: agentId }, { targetAgentId: agentId }]
+    }).sort({ dateArchived: -1 }); // Trie du plus récent au plus ancien
+
+   
+
+    if (!history.length) {
+      return res.status(404).json({ message: `Aucun historique trouvé pour l'agent ${agentId}` });
+    }
+
+    res.status(200).json(history); //Envoie la réponse JSON avec les données
+  } catch (err) {
+    console.error("Erreur lors de la récupération de l'historique :", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
+
+
+module.exports = {archiveToHistory, getHistory, getHistoryByAgent};
 
 

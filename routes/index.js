@@ -10,6 +10,7 @@ const requestsRoutes = require('./requestsRoutes');
 const agentsRoutes = require("./agentsRoutes");
 const authenticationsRoutes = require("./authenticationsRoutes");
 const notificationsRoute = require('./notificationsRoutes')
+const historyRoutes = require('./historyRoutes')
 
 // Définir les préfixes pour chaque groupe de routes
 const basePath = {
@@ -17,7 +18,8 @@ const basePath = {
     shifts: '/shifts',
     authentications: "/auth",
     requests: '/requests',
-    notifications: '/notif'
+    notifications: '/notif',
+    history:'/history'
 };
 
 router.use(basePath.agents, agentsRoutes);
@@ -25,6 +27,7 @@ router.use(basePath.shifts, shiftsRoutes);
 router.use(basePath.requests, requestsRoutes);
 router.use(basePath.authentications, authenticationsRoutes);
 router.use(basePath.notifications, notificationsRoute);
+router.use(basePath.history, historyRoutes);
 
 
 module.exports = router;
