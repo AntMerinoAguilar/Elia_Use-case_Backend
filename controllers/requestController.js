@@ -21,7 +21,26 @@ const getRequests = async (req, res) => {
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Fonction pour récupérer les demandes de l'agent connecté
 
+const getMyRequests = async (req, res) => {
+  try {
+    const agentId = req.agent._id; 
+
+    const myRequests = await Request.find({ requesterId: agentId })
+      .populate("shiftId") 
+      .populate("targetAgentId", "name surname code") 
+      .sort({ "timeSlot.startTime": -1 }); 
+
+    res.status(200).json(myRequests);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des demandes de l'agent :", err);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération des demandes." });
+  }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fonction pour récupérer les demandes d'un agent spécifique (soit comme demandeur, soit comme cible)
 const getRequestsByAgent = async (req, res) => {
   try {
@@ -507,9 +526,59 @@ const acceptRequest = async (req, res) => {
 
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Fonction permettant d'annuler une request
+
+const cancelRequest = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const agentId = req.user._id;
+
+    //Vérifier si la demande existe
+    const request = await Request.findById(requestId);
+    if (!request) {
+      return res.status(404).json({ error: "Demande non trouvée." });
+    }
+
+    //Vérifier que l'agent est bien l'auteur de la demande
+    if (request.requesterId.toString() !== agentId.toString()) {
+      return res.status(403).json({ error: "Vous ne pouvez annuler que vos propres demandes." });
+    }
+
+    //Vérifier que la demande n'a pas encore été acceptée
+    if (request.status === "Approved") {
+      return res.status(400).json({ error: "La demande a déjà été acceptée et ne peut plus être annulée." });
+    }
+
+    //Supprimer la demande
+    await Request.findByIdAndDelete(requestId);
+
+    //Envoyer une notification aux agents concernés si besoin
+    if (request.targetAgentId) {
+      await Notification.create({
+        recipientId: request.targetAgentId,
+        type: "Status Update",
+        message: `La demande de swap de ${request.requesterId} a été annulée.`,
+      });
+    }
+
+    //Archiver dans l'historique
+    await archiveToHistory(request, "Request Cancelled");
+
+    res.json({ message: "Demande de swap annulée avec succès." });
+
+  } catch (err) {
+    console.error("Erreur lors de l'annulation de la demande :", err);
+    res.status(500).json({ error: "Erreur serveur lors de l'annulation de la demande." });
+  }
+};
+
 module.exports = {
   getRequests,
+  getMyRequests,
   getRequestsByAgent,
   createRequest,
   acceptRequest,
+  cancelRequest,
 };
