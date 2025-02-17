@@ -20,6 +20,10 @@ Toutes les requêtes doivent être envoyées avec cette URL comme préfixe.
 
 ---
 
+## 📌 API Documentation
+
+L'API est organisée autour de plusieurs endpoints permettant la gestion des agents, des shifts, des demandes et des notifications.
+
 ## 📌 Authentification
 
 Toutes les routes nécessitent une **authentification** avec un **cookie sécurisé** (`token`).  
@@ -94,7 +98,7 @@ Assurez-vous d'envoyer `{ withCredentials: true }` dans vos requêtes.
 
 ---
 
-### 1 Replacement (Remplacement)
+### 1. Replacement (Remplacement)
 
 Un agent souhaite **transférer entièrement un shift à un remplaçant**.  
 Il n'a pas besoin de proposer un créneau (`availableSlots` absent).
@@ -115,7 +119,7 @@ Il n'a pas besoin de proposer un créneau (`availableSlots` absent).
 
 ---
 
-### 2 Swap (Échange)
+### 2. Swap (Échange)
 
 L'agent souhaite **échanger un shift avec d'autres agents**.  
 Il doit **fournir des créneaux alternatifs** (`availableSlots`).
@@ -163,7 +167,7 @@ L'agent peut **cibler sa demande de swap** en rajoutant un `targetAgentId`
 
 ---
 
-### 3 Urgent Replacement (Remplacement Urgent)
+### 3. Urgent Replacement (Remplacement Urgent)
 
 L'agent **libère immédiatement un créneau** qui devient **disponible pour tous**.  
 L'API **découpe automatiquement le shift** pour rendre la partie demandée disponible.
@@ -181,6 +185,28 @@ L'API **découpe automatiquement le shift** pour rendre la partie demandée disp
   "requestType": "Urgent Replacement"
 }
 ```
+
+---
+
+---
+
+### **Accepter une demande** `POST /api/requests/:id/accept`
+
+- **Description** : Accepte une demande de remplacement ou d'échange.
+- **ID de la demande**: la requestId doit être inclues dans les params.
+- **Corps de requête** :
+  ```json
+  {
+    "agentId": "agent456",
+    "selectedSlot": {
+      "startTime": "2025-02-20T08:00:00.000Z",
+      "endTime": "2025-02-20T12:00:00.000Z"
+    }
+  }
+  ```
+- **Comportement** :
+  - Si **Replacement**, le shift est transféré à l'agent acceptant.
+  - Si **Swap**, les shifts des deux agents sont échangés.
 
 ---
 

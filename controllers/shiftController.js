@@ -35,14 +35,16 @@ const getAllShifts = async (req, res) => {
 // Récupérer les shifts de l'agent connecté
 const getCurrentAgentShifts = async (req, res) => {
   try {
-    const agentId = req.agent.id; // Récupérer l'agent connecté via le middleware
+    const agentId = req.agent._id; // Récupérer l'agent connecté via le middleware
     const shifts = await Shift.find({ agentId });
     res.json(shifts);
   } catch (err) {
-    res.status(500).json({ error: "Erreur lors de la récupération des shifts" });
+    console.error("Erreur lors de la récupération des shifts :", err);
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la récupération des shifts" });
   }
 };
-
 
 // Mettre à jour un shift
 const updateShift = async (req, res) => {
