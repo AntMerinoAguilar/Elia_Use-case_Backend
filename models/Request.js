@@ -22,7 +22,8 @@ const requestSchema = new mongoose.Schema({
   status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
   message: String,
   
-  targetAgentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', default: null }
+  targetAgentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', default: null },
+  acceptingAgent: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', default: null}
 }, { timestamps: true });
 
 const Request = mongoose.model('Request', requestSchema);

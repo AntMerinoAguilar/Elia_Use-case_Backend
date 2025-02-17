@@ -430,6 +430,7 @@ const acceptRequest = async (req, res) => {
         }
 
         request.status = "Approved";
+        request.acceptingAgent = acceptingAgent._id
         await request.save();
         await archiveToHistory(request, "Urgent Replacement Accepted");
         await Request.findByIdAndDelete(requestId);
@@ -469,6 +470,7 @@ const acceptRequest = async (req, res) => {
       await availableShift.save();
 
       request.status = "Approved";
+      request.acceptingAgent = acceptingAgent._id
       await request.save();
       await archiveToHistory(request, "Urgent Replacement Accepted");
       await Request.findByIdAndDelete(requestId);
@@ -495,6 +497,7 @@ const acceptRequest = async (req, res) => {
 
       // Mettre à jour la demande comme "Approved"
       request.status = "Approved";
+      request.acceptingAgent = acceptingAgent._id
       await request.save();
 
       // Archiver la demande dans l'historique
