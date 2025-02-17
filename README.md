@@ -184,7 +184,11 @@ L'API **découpe automatiquement le shift** pour rendre la partie demandée disp
 }
 ```
 
-#### `POST /api/requests/:id/accept`
+---
+
+---
+
+#### **_Accepter une demande_** `POST /api/requests/:id/accept`
 
 - **Description** : Accepte une demande de remplacement ou d'échange.
 - **ID de la demande**: la requestId doit être inclues dans les params.
