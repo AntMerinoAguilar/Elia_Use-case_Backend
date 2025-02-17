@@ -85,14 +85,16 @@ Assurez-vous d'envoyer `{ withCredentials: true }` dans vos requêtes.
 - **Urgent Replacement** : L'agent libère immédiatement son shift qui devient **disponible pour tous**.
 
 - **GET** `/api/requests`→ Récupérer toutes les demandes
+- **GET** `/api/requests/me`→ Récupérer les demandes de l'agent connecté
 - **GET** `/api/requests/:id`→ Récupérer une demande par ID
 - **POST** `/api/requests`→ Créer une demande de remplacement ou d'échange
 - **PUT** `/api/requests/:id/accept`→ Accepter une demande
+- **DELETE** `/api/requests/:id/cancel`→ Annuler une demande
 - **DELETE** `/api/requests/:id`→ Supprimer une demande
 
 ---
 
-### 1⃣ Replacement (Remplacement)
+### 1 Replacement (Remplacement)
 
 Un agent souhaite **transférer entièrement un shift à un remplaçant**.  
 Il n'a pas besoin de proposer un créneau (`availableSlots` absent).
@@ -113,7 +115,7 @@ Il n'a pas besoin de proposer un créneau (`availableSlots` absent).
 
 ---
 
-### 2⃣ Swap (Échange)
+### 2 Swap (Échange)
 
 L'agent souhaite **échanger un shift avec d'autres agents**.  
 Il doit **fournir des créneaux alternatifs** (`availableSlots`).
@@ -161,7 +163,7 @@ L'agent peut **cibler sa demande de swap** en rajoutant un `targetAgentId`
 
 ---
 
-### 3⃣ Urgent Replacement (Remplacement Urgent)
+### 3 Urgent Replacement (Remplacement Urgent)
 
 L'agent **libère immédiatement un créneau** qui devient **disponible pour tous**.  
 L'API **découpe automatiquement le shift** pour rendre la partie demandée disponible.
