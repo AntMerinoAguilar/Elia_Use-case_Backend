@@ -65,9 +65,6 @@ const getHistoryByAgent = async (req, res) => {
 };
 
 
-
-
-
 module.exports = {archiveToHistory, getHistory, getHistoryByAgent};
 
 
