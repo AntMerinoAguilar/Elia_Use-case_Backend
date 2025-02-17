@@ -7,6 +7,7 @@ const requireAuthMiddleware = require("../middlewares/authMiddleware");
 router.post("/", requireAuthMiddleware, notificationController.createNotification);
 router.get("/", requireAuthMiddleware, notificationController.getAllNotifications);
 router.get("/:agentId", requireAuthMiddleware, notificationController.getAgentNotifications);
+router.get("/me", requireAuthMiddleware, notificationController.getMyNotifications);
 router.put("/:id/read", requireAuthMiddleware, notificationController.markAsRead);
 router.delete("/:id", requireAuthMiddleware, notificationController.deleteNotification);
 router.delete(
