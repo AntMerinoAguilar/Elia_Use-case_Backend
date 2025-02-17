@@ -243,7 +243,7 @@ const acceptRequest = async (req, res) => {
       if (!selectedSlot)
         return res.status(400).json({ error: "Un créneau doit être sélectionné pour un swap." });
 
-      // Nouvelle logique de validation du créneau
+      // Logique de validation du créneau
       const selectedStartTime = new Date(selectedSlot.startTime).getTime();
       const selectedEndTime = new Date(selectedSlot.endTime).getTime();
       
