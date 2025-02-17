@@ -29,7 +29,7 @@ const getMyRequests = async (req, res) => {
   try {
     const agentId = req.agent._id; 
 
-    const myRequests = await Request.find({  $or: [{ requesterId: agentId }, { targetAgentId: agentId }] })
+    const myRequests = await Request.find({  $or: [{ requesterId: agentId }, { targetAgentId: agentId }, {acceptingAgent: agentId}] })
       .populate("shiftId") 
       .populate("targetAgentId", "name surname code") 
       .sort({ "timeSlot.startTime": -1 }); 
