@@ -29,7 +29,7 @@ const getMyRequests = async (req, res) => {
   try {
     const agentId = req.agent._id; 
 
-    const myRequests = await Request.find({  $or: [{ requesterId: agentId }, { targetAgentId: agentId }, {acceptingAgent: agentId}] })
+    const myRequests = await Request.find({  $or: [{ requesterId: agentId }, { targetAgentId: agentId }] })
       .populate("shiftId") 
       .populate("targetAgentId", "name surname code") 
       .sort({ "timeSlot.startTime": -1 }); 
@@ -430,7 +430,6 @@ const acceptRequest = async (req, res) => {
         }
 
         request.status = "Approved";
-        request.acceptingAgent = acceptingAgent._id
         await request.save();
         await archiveToHistory(request, "Urgent Replacement Accepted");
         await Request.findByIdAndDelete(requestId);
@@ -470,7 +469,6 @@ const acceptRequest = async (req, res) => {
       await availableShift.save();
 
       request.status = "Approved";
-      request.acceptingAgent = acceptingAgent._id
       await request.save();
       await archiveToHistory(request, "Urgent Replacement Accepted");
       await Request.findByIdAndDelete(requestId);
@@ -497,7 +495,6 @@ const acceptRequest = async (req, res) => {
 
       // Mettre à jour la demande comme "Approved"
       request.status = "Approved";
-      request.acceptingAgent = acceptingAgent._id
       await request.save();
 
       // Archiver la demande dans l'historique
