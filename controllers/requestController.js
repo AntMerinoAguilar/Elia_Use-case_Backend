@@ -7,11 +7,13 @@ const { archiveToHistory } = require("./historyController");
 // Fonction pour récupérer toutes les demandes, triées par la plus récente
 const getRequests = async (req, res) => {
   try {
+    const filter = req.query.type ? { type: req.query.type } : {}; // Filtre par type si spécifié
     const requests = await Request.find()
       .populate("requesterId", "name surname code") // Récupère nom, prénom et code du demandeur
       .populate("shiftId") // Récupère le shift lié
       .populate("targetAgentId", "name surname code") // Récupère nom, prénom et code de l'agent cible (si applicable)
-      .sort({ createdAt: -1 }); // Trie les résultats du plus récent au plus ancien
+      /* .sort({ createdAt: -1 }); // Trie les résultats du plus récent au plus ancien */
+      .sort({ "shiftId.startDate": -1 }); // Trie par ordre décroissant de début de shift
 
     res.status(200).json(requests);
   } catch (err) {
