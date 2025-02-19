@@ -104,6 +104,18 @@ const createRequest = async (req, res) => {
     if (requestType === "Swap" && (!availableSlots || availableSlots.length === 0)) {
       return res.status(400).json({ error: "Pour un Swap, il faut proposer au moins un créneau de disponibilité (availableSlots)." });
     }
+ // Vérifier si une demande existe déjà pour le même timeSlot et requestType
+    const existingRequest = await Request.findOne({
+      requesterId,
+      requestType,
+      "timeSlot.startTime": new Date(timeSlot.startTime),
+      "timeSlot.endTime": new Date(timeSlot.endTime),
+    });
+
+    if (existingRequest) {
+      return res.status(400).json({ error: "Une demande existe déjà pour ce créneau." });
+    } 
+
 
     // Vérifier que l'agent possède bien le shift et que le timeSlot est strictement inclus
     const existingShift = await Shift.findOne({
@@ -535,7 +547,7 @@ const acceptRequest = async (req, res) => {
 const cancelRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
-    const agentId = req.user._id;
+    const agentId = req.agent._id;
 
     //Vérifier si la demande existe
     const request = await Request.findById(requestId);
