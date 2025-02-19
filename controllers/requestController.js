@@ -535,7 +535,7 @@ const acceptRequest = async (req, res) => {
 const cancelRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
-    const agentId = req.user._id;
+    const agentId = req.agent._id;
 
     //Vérifier si la demande existe
     const request = await Request.findById(requestId);
