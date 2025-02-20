@@ -51,4 +51,4 @@ app.get("/", (req, res) => {
 app.use('/api', routes);
 
 // Démarrer le serveur
-/* app.listen(PORT, () => console.log(`Serveur lancé sur http://localhost:${PORT}`)); */
+app.listen(PORT, () => console.log(`Serveur lancé sur port${PORT}`));
