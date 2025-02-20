@@ -14,7 +14,7 @@ router.get("/login", (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "None", // Permet l'accès entre différents ports (5173 → 3000)
-      domain: ".vercel.app",  // Spécifie que le cookie appartient à localhost ou domain
+      domain: ".onrender.com",  // Spécifie que le cookie appartient à localhost ou domain
       /* path: "/", */ // Rend le cookie accessible sur toutes les routes
       maxAge: 10 * 24 * 60 * 60 * 1000, // 10 jours
     });
