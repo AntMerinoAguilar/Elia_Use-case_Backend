@@ -10,7 +10,7 @@ router.post("/login", authController.login);
 router.get("/login", (req, res) => {
 
     let token = "qlmskdjf"
-    res.cookie("token", token, {
+    res.status(200).cookie("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "None", // Permet l'accès entre différents ports (5173 → 3000)
