@@ -40,8 +40,8 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "None", // Permet l'accès entre différents ports (5173 → 3000)
-      domain: "https://eduty-groupe2.vercel.app",  // Spécifie que le cookie appartient à localhost ou domain
-      path: "/", // Rend le cookie accessible sur toutes les routes
+      domain: ".vercel.app",  // Spécifie que le cookie appartient à localhost ou domain
+      /* path: "/", */ // Rend le cookie accessible sur toutes les routes
       maxAge: 10 * 24 * 60 * 60 * 1000, // 10 jours
     });
 
@@ -60,8 +60,8 @@ const logout = async (req, res) => {
       httpOnly: true,
       secure: true, // ⚠️ Mettre `true` en production
       sameSite: "None",
-      path: "/",
-      domain: "https://eduty-groupe2.vercel.app"
+      /* path: "/" */
+      domain: "vercel.app"
     });
     res.status(200).json({ message: "Déconnexion réussie" });
   } catch (err) {
