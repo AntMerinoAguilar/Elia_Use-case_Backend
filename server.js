@@ -24,6 +24,7 @@ const corsOptions = {
     origin: [/* "http://localhost:5173", */ "https://eduty-groupe2.vercel.app"], 
     methods: "GET,POST,DELETE,PUT,PATCH",
     allowedHeaders: "Content-Type,Authorization",
+    exposedHeaders: ["set-cookie"],
     credentials: true,  // Ajout pour autoriser les cookies/sessions
 };
 app.use(cors(corsOptions));

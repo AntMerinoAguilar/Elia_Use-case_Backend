@@ -10,14 +10,14 @@ router.post("/login", authController.login);
 router.get("/login", (req, res) => {
 
     let token = "qlmskdjf"
-    res.status(200).cookie("token", token, {
+    res.cookie("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "None", // Permet l'accès entre différents ports (5173 → 3000)
       domain: ".onrender.com",  // Spécifie que le cookie appartient à localhost ou domain
       /* path: "/", */ // Rend le cookie accessible sur toutes les routes
       maxAge: 10 * 24 * 60 * 60 * 1000, // 10 jours
-    });
+    }).status(200);
 })
 
 // Route pour la déconnexion
