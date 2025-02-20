@@ -5,7 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser"); // Importer cookie-parser
 
 // Importer les routes via le fichier routes/index.js
-const routes = require("./api/index");
+const routes = require("./api/globalRoutes");
 
 // Pour charger le .env
 dotenv.config();
