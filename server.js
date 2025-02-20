@@ -5,7 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser"); // Importer cookie-parser
 
 // Importer les routes via le fichier routes/index.js
-const routes = require("./routes/index");
+const routes = require("./api/index");
 
 // Pour charger le .env
 dotenv.config();
@@ -45,9 +45,10 @@ app.get("/", (req, res) => {
 // Utilisation du Router
 app.use('/api', routes);
 
-// Démarrer le serveur
-/* Vercel */
+/* // Démarrer le serveur
+/* Vercel 
 if (process.env.NODE_ENV === "development") {
   app.listen(PORT, () => console.log(`Serveur lancé sur port${PORT}`));
 } 
-
+ */
+module.exports = app;
