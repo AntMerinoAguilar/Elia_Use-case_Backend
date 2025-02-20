@@ -99,7 +99,7 @@ const deleteAgent = async (req, res) => {
     }
     res.status(200).json({ message: `Agent ${id} supprimé avec succès` });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message }); 
   }
 };
 
