@@ -51,7 +51,9 @@ app.get("/", (req, res) => {
 app.use('/api', routes);
 
 // Démarrer le serveur
-if (process.env.NODE_ENV === "development") {
+ app.listen(PORT, () => console.log(`Serveur lancé sur port${PORT}`));
+/* Vercel */
+/* if (process.env.NODE_ENV === "development") {
   app.listen(PORT, () => console.log(`Serveur lancé sur port${PORT}`));
-} 
+}  */
 
