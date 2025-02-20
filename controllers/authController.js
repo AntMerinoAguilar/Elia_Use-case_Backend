@@ -36,11 +36,11 @@ const login = async (req, res) => {
     );
 
     // Stocker le token dans un cookie sécurisé
-    res.cookie("token", token, {
+    res.cookie("vercel_jwe", token, {
       httpOnly: true,
       secure: true,
       sameSite: "None", // Permet l'accès entre différents ports (5173 → 3000)
-      domain: ".onrender.com",  // Spécifie que le cookie appartient à localhost ou domain
+      domain: ".vercel.app",  // Spécifie que le cookie appartient à localhost ou domain
       /* path: "/", */ // Rend le cookie accessible sur toutes les routes
       maxAge: 10 * 24 * 60 * 60 * 1000, // 10 jours
     });
@@ -56,12 +56,12 @@ const login = async (req, res) => {
 // Déconnexion de l'application
 const logout = async (req, res) => {
   try {
-    res.clearCookie("token", {
+    res.clearCookie("vercel_jwe", {
       httpOnly: true,
       secure: true, // ⚠️ Mettre `true` en production
       sameSite: "None",
       /* path: "/" */
-      domain: ".onrender.com"
+      domain: ".vercel.app"
     });
     res.status(200).json({ message: "Déconnexion réussie" });
   } catch (err) {

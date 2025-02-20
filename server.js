@@ -4,11 +4,6 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser"); // Importer cookie-parser
 
-// Imports des models
-const Agent = require('./models/Agent');
-const Shift = require('./models/Shift');
-const Request = require('./models/Request');
-
 // Importer les routes via le fichier routes/index.js
 const routes = require("./routes/index");
 
@@ -21,10 +16,9 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 const corsOptions = {
-    origin: [/* "http://localhost:5173", */ "https://eduty-groupe2.vercel.app"], 
+    origin: ["http://localhost:5173", "https://eduty-groupe2.vercel.app"], 
     methods: "GET,POST,DELETE,PUT,PATCH",
     allowedHeaders: "Content-Type,Authorization",
-    exposedHeaders: ["set-cookie"],
     credentials: true,  // Ajout pour autoriser les cookies/sessions
 };
 app.use(cors(corsOptions));
@@ -52,9 +46,8 @@ app.get("/", (req, res) => {
 app.use('/api', routes);
 
 // Démarrer le serveur
- app.listen(PORT, () => console.log(`Serveur lancé sur port${PORT}`));
 /* Vercel */
-/* if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV === "development") {
   app.listen(PORT, () => console.log(`Serveur lancé sur port${PORT}`));
-}  */
+} 
 
