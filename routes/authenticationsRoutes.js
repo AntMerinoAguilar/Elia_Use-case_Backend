@@ -8,6 +8,8 @@ router.post("/login", authController.login);
 // route get test
 
 router.get("/login", (req, res) => {
+
+    let token = "qlmskdjf"
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
