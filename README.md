@@ -102,6 +102,27 @@ Le projet repose sur plusieurs bibliothèques essentielles pour gérer l'authent
 
 ---
 
+### 📥 Télécharger et utiliser le workspace Postman
+
+Un workspace Postman préconfiguré est disponible pour faciliter les tests API. Vous pouvez l'importer directement en cliquant sur le lien ci-dessous :
+
+[🚀 Accéder au workspace Postman](https://eliause-casebecode.postman.co/workspace/Elia_Use-case_BeCode-Workspace~39f3ae26-0e1d-4dc8-9c58-aa4477336200/collection/39477284-7d8bc027-e1c0-42a2-81d7-d8241b91ab71?action=share&source=collection_link&creator=39362631)
+
+📌 **Instructions** :
+
+1. Cliquez sur le lien ci-dessus.
+2. Connectez-vous ou créez un compte Postman si nécessaire.
+3. Cliquez sur **"Fork"** ou **"Import"** pour ajouter la collection à votre propre Postman.
+4. Configurez les variables d’environnement avec vos propres valeurs (`MONGO_URI`, `JWT_SECRET`, etc.).
+5. Lancez les requêtes pour tester l’API.
+
+---
+
+📌 **Pourquoi utiliser ce workspace ?**  
+✅ Contient les principales requêtes API préconfigurées  
+✅ Facile à importer dans Postman  
+✅ Permet de tester rapidement l’API sans configurer manuellement chaque requête
+
 ## 📌 API Documentation
 
 L'API est organisée autour de plusieurs endpoints permettant la gestion des agents, des shifts, des demandes et des notifications.
