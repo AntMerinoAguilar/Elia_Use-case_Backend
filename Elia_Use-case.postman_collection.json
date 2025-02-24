@@ -1,0 +1,543 @@
+{
+	"info": {
+		"_postman_id": "7d8bc027-e1c0-42a2-81d7-d8241b91ab71",
+		"name": "Elia_Use-case",
+		"description": "Collection pour tester les routes du projet backend Elia",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39362631",
+		"_collection_link": "https://eliause-casebecode.postman.co/workspace/Elia_Use-case_BeCode-Workspace~39f3ae26-0e1d-4dc8-9c58-aa4477336200/collection/39477284-7d8bc027-e1c0-42a2-81d7-d8241b91ab71?action=share&source=collection_link&creator=39362631"
+	},
+	"item": [
+		{
+			"name": "Authentications",
+			"item": [
+				{
+					"name": "/auth/login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"herbertbrito\",\r\n  \"password\": \"test12\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Agents",
+			"item": [
+				{
+					"name": "/agents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/agents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agents"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/agents/:id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/agents/{{agentId_HBR}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agents",
+								"{{agentId_HBR}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/agents",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Enregistrer l'ID de l'agent créé avec son code\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    \r",
+									"    if (jsonData._id && jsonData.code) {\r",
+									"        // Créer un nom de variable unique basé sur le code de l'agent\r",
+									"        var uniqueVarName = 'agentId_' + jsonData.code;\r",
+									"\r",
+									"        // Sauvegarder l'ID de l'agent dans cette variable\r",
+									"        pm.environment.set(uniqueVarName, jsonData._id);\r",
+									"\r",
+									"        console.log(\"Nouvel agent ID enregistré sous : \" + uniqueVarName);\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"profile_pic\": \"https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-Vector-PNG-File.png\",\r\n  \"name\": \"Alex\",\r\n  \"surname\": \"Vane\",\r\n  \"username\": \"alexvane\",\r\n  \"password\": \"test12\",\r\n  \"code\": \"AVA\",\r\n  \"telephone\": \"+32470905060\",\r\n  \"sector\": \"Bressoux\",\r\n  \"balance\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agents"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/agents/:id",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"telephone\": \"+32478905358\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/agents/{{agentId_HBR}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agents",
+								"{{agentId_HBR}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/agents/:id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/agents/{{agentId_AVA}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agents",
+								"{{agentId_AVA}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Shifts",
+			"item": [
+				{
+					"name": "/shifts",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"agentId\": \"{{agentId_AVA}}\",\r\n  \"agentCode\": \"AVA\",\r\n  \"startDate\": \"2027-01-01T00:00:00.000Z\",\r\n  \"endDate\": \"2027-01-07T00:00:00.000Z\",\r\n  \"status\": \"Assigned\",\r\n  \"replacements\": [\r\n    /* {\r\n      \"replacementId\": \"65c4d18b3e8a4f001b0f1a3d\",\r\n      \"startTime\": \"2025-02-07T10:00:00.000Z\",\r\n      \"endTime\": \"2025-02-07T14:00:00.000Z\",\r\n      \"status\": \"Pending\"\r\n    } */\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/shifts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shifts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/shifts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/shifts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shifts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/shifts/me",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/shifts/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shifts",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/shifts/:id",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"agentId\": \"{{agentId_AVA}}\",\r\n  \"agentCode\": \"AVA\",\r\n  \"startDate\": \"2027-01-07T00:00:00.000Z\",\r\n  \"endDate\": \"2027-01-13T00:00:00.000Z\",\r\n  \"status\": \"Assigned\",\r\n  \"replacements\": [\r\n    /* {\r\n      \"replacementId\": \"65c4d18b3e8a4f001b0f1a3d\",\r\n      \"startTime\": \"2025-02-07T10:00:00.000Z\",\r\n      \"endTime\": \"2025-02-07T14:00:00.000Z\",\r\n      \"status\": \"Pending\"\r\n    } */\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/shifts/{{shiftId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shifts",
+								"{{shiftId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/shifts/:id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/shifts/{{shiftId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shifts",
+								"{{shiftId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Requests",
+			"item": [
+				{
+					"name": "/requests",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"requesterId\": \"{{agentId_HBR}}\",\r\n  \"shiftId\": \"{{shiftId}}\",\r\n  \"timeSlot\": {\r\n    \"startTime\": \"2026-01-03T19:30:00.000+00:00\",\r\n    \"endTime\": \"2026-01-08T06:30:00.000+00:00\"\r\n  },\r\n/*    \"availableSlots\": [\r\n    {\r\n      \"startTime\": \"2026-01-08T06:30:00.000+00:00\",\r\n      \"endTime\": \"2026-01-15T06:30:00.000+00:00\"\r\n    }\r\n  ], */ \r\n  /* \"requestType\": \"Replacement\" */ /*\"requestType\": \"Swap\"*/ \"requestType\": \"Urgent Replacement\"\r\n  /* \"targetAgentId\": \"{{agentId_CME}}\"  */\r\n  \r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/requests",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/requests",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/requests",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/requests/:agentId",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/requests/{{agentId_HBR}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests",
+								"{{agentId_HBR}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/requests/:id/accept",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  /* \"selectedSlot\": {\r\n    \"startTime\": \"2026-01-08T06:30:00.000+00:00\",\r\n    \"endTime\": \"2026-01-15T06:30:00.000+00:00\"\r\n  }, */\r\n  \"agentId\" : \"{{agentId_CME}}\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/requests/{{requestId}}/accept",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests",
+								"{{requestId}}",
+								"accept"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/requests/:id/cancel",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/requests/{{requestId}}/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests",
+								"{{requestId}}",
+								"cancel"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "/notif",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"recipientId\": \"{{agentId_AVA}}\",\r\n  \"type\": \"Swap Request\",\r\n  \"message\": \"Votre demande de swap a été acceptée\",\r\n  \"isRead\": false\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/notif",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notif"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/notif",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notif",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notif"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/notif/:agentId",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notif/{{agentId_HBR}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notif",
+								"{{agentId_HBR}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/notif/:id/read",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notif/{{notificationId}}/read",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notif",
+								"{{notificationId}}",
+								"read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/notif/:id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notif/{{notificationId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notif",
+								"{{notificationId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/notif/agent/:agentId",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notif/agent/{{agentId_AVA}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notif",
+								"agent",
+								"{{agentId_AVA}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
