@@ -28,7 +28,7 @@ Avant de commencer, assure-toi d'avoir installé :
 
 ```bash
 git clone https://github.com/AntMerinoAguilar/Elia_Use-case_Backend.git
-cd <Elia_Use-case_Backend>
+cd Elia_Use-case_Backend
 ```
 
 2️⃣ **Installer les dépendances**
@@ -106,7 +106,7 @@ Le projet repose sur plusieurs bibliothèques essentielles pour gérer l'authent
 
 Un workspace Postman préconfiguré est disponible pour faciliter les tests API. Vous pouvez l'importer directement en cliquant sur le lien ci-dessous :
 
-[🚀 Accéder au workspace Postman](https://eliause-casebecode.postman.co/workspace/Elia_Use-case_BeCode-Workspace~39f3ae26-0e1d-4dc8-9c58-aa4477336200/collection/39477284-7d8bc027-e1c0-42a2-81d7-d8241b91ab71?action=share&source=collection_link&creator=39362631)
+[🚀 Accéder au workspace Postman](https://eliause-casebecode.postman.co/workspace/Elia_Use-case_BeCode-Workspace~39f3ae26-0e1d-4dc8-9c58-aa4477336200/collection/39477284-7d8bc027-e1c0-42a2-81d7-d8241b91ab71?action=share&creator=39477284&active-environment=39477284-de81ee44-f889-4286-976a-7fb9dff47dcc)
 
 📌 **Instructions** :
 
@@ -173,6 +173,31 @@ Assurez-vous d'envoyer `{ withCredentials: true }` dans vos requêtes.
 - **PUT** `/api/agents/:id` → Modifier un agent
 - **DELETE** `/api/agents/:id` → Supprimer un agent
 
+### **Exemple de requête POST vers `/api/agents`**
+
+```json
+{
+  "employee_number": 45894528,
+  "profile_pic": "url de l'image hébergée",
+  "name": "Maria",
+  "surname": "Garcia",
+  "username": "mariagarcia",
+  "password": "test12",
+  "code": "MGA",
+  "telephone": "+32478945360",
+  "sector": "Bressoux",
+  "balance": 0,
+  "color": "#32CD32",
+  "history": ""
+}
+```
+
+📌 **Remarque :**
+
+- Assurez-vous que les champs obligatoires sont bien remplis.
+- Le mot de passe sera hashé avant d'être stocké.
+- L'ID est généré automatiquement par MongoDB.
+
 ---
 
 ## 🗓️ Shifts
@@ -182,6 +207,25 @@ Assurez-vous d'envoyer `{ withCredentials: true }` dans vos requêtes.
 - **GET** `/api/shifts/me` → Récupérer les shifts de l'agent connecté
 - **POST** `/api/shifts` → Créer un shift
 - **DELETE** `/api/shifts/:id` → Supprimer un shift
+
+### **Exemple de requête POST vers `/api/shifts`**
+
+```json
+{
+  "agentId": "67a230b92010272f88df51d8",
+  "agentCode": "AVA",
+  "startDate": "2027-01-01T00:00:00.000Z",
+  "endDate": "2027-01-07T00:00:00.000Z",
+  "status": "Assigned",
+  "replacements": []
+}
+```
+
+📌 **Remarque :**
+
+- Assurez-vous que `agentId` correspond à un agent existant.
+- `startDate` et `endDate` doivent être au format ISO8601.
+- Le champ `status` doit être défini avec une valeur valide (`Assigned`, `Pending`, etc.).
 
 ---
 
@@ -351,6 +395,12 @@ L'API **découpe automatiquement le shift** pour rendre la partie demandée disp
   - Suppression des entrées traitées de l'historique pour éviter l'accumulation de données obsolètes.
 
 ---
+
+## 🌐 Lien vers le dépôt Frontend
+
+Le projet frontend associé est disponible sur GitHub :
+
+[🔗 Elia Use-case Frontend](https://github.com/AntMerinoAguilar/Elia_Use-case_Frontend)
 
 🌟 **eDuty - Un système simple et efficace pour gérer vos shifts !** 🚀  
 📧 **Contactez-nous pour toute question ou amélioration !**
