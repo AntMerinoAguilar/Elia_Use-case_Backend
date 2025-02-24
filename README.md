@@ -173,7 +173,7 @@ Assurez-vous d'envoyer `{ withCredentials: true }` dans vos requêtes.
 - **PUT** `/api/agents/:id` → Modifier un agent
 - **DELETE** `/api/agents/:id` → Supprimer un agent
 
-### **Exemple de requête POST vers `/api/agents`**
+### **Exemple de payload pour une requête POST vers `/api/agents`**
 
 ```json
 {
@@ -208,7 +208,7 @@ Assurez-vous d'envoyer `{ withCredentials: true }` dans vos requêtes.
 - **POST** `/api/shifts` → Créer un shift
 - **DELETE** `/api/shifts/:id` → Supprimer un shift
 
-### **Exemple de requête POST vers `/api/shifts`**
+### **Exemple de payload pour une requête POST vers `/api/shifts`**
 
 ```json
 {
