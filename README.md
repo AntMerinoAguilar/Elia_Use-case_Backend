@@ -10,6 +10,66 @@ L'API offre plusieurs fonctionnalités comme :
 - Système de notifications
 - Suivi des historiques des échanges
 
+## 🚀 Installation & Prérequis
+
+### 📌 Prérequis
+
+Avant de commencer, assure-toi d'avoir installé :
+
+- [Node.js](https://nodejs.org/) (version recommandée : LTS)
+- [MongoDB](https://www.mongodb.com/) (localement ou via un service cloud comme MongoDB Atlas)
+- Un terminal (Bash, PowerShell, ou un terminal intégré à un IDE comme VS Code)
+
+---
+
+### 🛠️ Étapes d'installation
+
+1️⃣ **Cloner le dépôt**
+
+```bash
+git clone https://github.com/AntMerinoAguilar/Elia_Use-case_Backend.git
+cd <Elia_Use-case_Backend>
+```
+
+2️⃣ **Installer les dépendances**
+
+```bash
+npm install
+```
+
+3️⃣ **Créer un fichier `.env` à la racine du projet et ajouter les variables d'environnement**
+
+```ini
+MONGO_URI=<votre_url_mongodb>
+PORT=3000
+JWT_SECRET=<votre_secret_jwt>
+```
+
+🔹 **MONGO_URI** : URL de connexion à MongoDB (ex : `mongodb://localhost:27017/nom_de_la_bdd`)
+🔹 **PORT** : Port sur lequel l'application va tourner (par défaut **3000**)
+🔹 **JWT_SECRET** : Clé secrète utilisée pour signer les tokens JWT
+
+4️⃣ **Lancer le serveur**
+
+```bash
+npm start
+```
+
+ou en mode développement (avec `nodemon` si disponible) :
+
+```bash
+npm run dev
+```
+
+5️⃣ **Vérifier que le serveur tourne**
+Si tout fonctionne correctement, l'API est accessible sur :
+
+```
+http://localhost:3000
+```
+
+---
+
 ## 💻 Déploiement
 
 L'API est déployée à l'adresse suivante :
@@ -17,6 +77,28 @@ L'API est déployée à l'adresse suivante :
 **URL de base** : `https://eduty-groupe2.onrender.com/`
 
 Toutes les requêtes doivent être envoyées avec cette URL comme préfixe.
+
+---
+
+## 📦 Dépendances
+
+Le projet repose sur plusieurs bibliothèques essentielles pour gérer l'authentification, la communication entre serveurs et la base de données.
+
+### 🔐 Sécurité & Authentification
+
+- **bcryptjs (`^2.4.3`)** : Permet le hachage sécurisé des mots de passe avant leur stockage.
+- **jsonwebtoken (`^9.0.2`)** : Gère la création et la vérification des tokens JWT pour l'authentification des utilisateurs.
+
+### 🌐 Middleware & Gestion des requêtes
+
+- **cookie-parser (`^1.4.7`)** : Analyse et gère les cookies envoyés par le client.
+- **cors (`^2.8.5`)** : Active le Cross-Origin Resource Sharing pour permettre la communication entre le backend et le frontend.
+- **dotenv (`^16.4.7`)** : Charge les variables d'environnement depuis un fichier `.env`, évitant d'exposer des informations sensibles dans le code.
+- **express (`^4.21.2`)** : Framework web minimaliste et rapide pour la gestion des routes et des requêtes HTTP.
+
+### 🗄️ Base de données
+
+- **mongoose (`^8.9.6`)** : Facilite l'interaction avec MongoDB via un ORM, permettant de structurer et manipuler les données plus facilement.
 
 ---
 
@@ -224,6 +306,28 @@ L'API **découpe automatiquement le shift** pour rendre la partie demandée disp
 
 - **GET** `/api/history/:` → Récupérer l’historique
 - **GET** `/api/history/:id` → Récupérer l’historique d’un agent
+
+---
+
+## 🗺️📈 Roadmap (features à implémenter)
+
+### ✅ Limitation du solde d'heures négatives
+
+- Implémentation d'un plafond empêchant les agents d'accumuler un nombre excessif d'heures en balance négative.
+- Mise en place d'un mécanisme d'alerte et de restriction dès que la limite est atteinte.
+
+### 🔄 Système de transaction sécurisé
+
+- Introduction d'un système garantissant que les opérations multi-étapes (ex: acceptation de demande => création de shifts => envoi de notifications etc...) ne soient validées qu'à la complétion de la dernière étape.
+- Utilisation d'une approche transactionnelle pour éviter les incohérences dans le workflow et garantir l'intégrité des données.
+
+### 📊 Amélioration du système de balance
+
+- Modification du mécanisme d'incrémentation de la balance afin qu'elle ne soit mise à jour qu'après la prestation effective des heures concernées.
+- Implémentation d'une fonction planifiée s'exécutant chaque jour à minuit :
+  - Recherche dans l'historique des remplacements les balances ayant une date antérieure ou égale à la date actuelle.
+  - Mise à jour automatique de la balance dans le profil de l'agent.
+  - Suppression des entrées traitées de l'historique pour éviter l'accumulation de données obsolètes.
 
 ---
 

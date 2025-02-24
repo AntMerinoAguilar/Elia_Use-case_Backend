@@ -3,7 +3,7 @@ const History = require("../models/History");
 //Fonction pour ajouter une requête ou une indisponibilité dans History
 async function archiveToHistory(document, type) {
   try {
-    // 🏆 Filtrer les champs pour ne copier que ceux qui existent
+    //Filtrer les champs pour ne copier que ceux qui existent
     const historyData = {
       type,
       relatedId: document._id,
@@ -23,7 +23,7 @@ async function archiveToHistory(document, type) {
 
     const archivedEntry = new History(historyData);
     await archivedEntry.save();
-    console.log(`${type} archivée dans History !`);
+    
   } catch (err) {
     console.error("Erreur lors de l'archivage dans History :", err);
   }

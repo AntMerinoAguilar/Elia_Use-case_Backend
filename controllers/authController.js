@@ -40,7 +40,6 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: false,
       sameSite: "Lax", // Permet l'accès entre différents ports (5173 → 3000)
-      /* domain: ".vercel.app",  */ // Spécifie que le cookie appartient à localhost ou domain
       path: "/", // Rend le cookie accessible sur toutes les routes
       maxAge: 10 * 24 * 60 * 60 * 1000, // 10 jours
     });
@@ -58,10 +57,10 @@ const logout = async (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: false, // ⚠️ Mettre `true` en production
+      secure: false,
       sameSite: "Lax",
       path: "/",
-      /* domain: ".vercel.app" */
+      
     });
     res.status(200).json({ message: "Déconnexion réussie" });
   } catch (err) {

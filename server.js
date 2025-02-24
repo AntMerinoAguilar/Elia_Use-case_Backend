@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser()); // Ajouter cookie-parser ici
+app.use(cookieParser()); 
 
 // Connexion à MongoDB
 mongoose.connect(process.env.MONGO_URI)

@@ -36,19 +36,7 @@ const getAgentNotifications = async (req, res) => {
   }
 };
 
-//Recupère les notifications de l'agent connecté
-/* const getMyNotifications = async (req, res) => {
-  console.log("req.agent:", req.agent);
-  try {
-    const agentId = req.agent._id
-    const notifications = await Notification.find({
-      recipientId: agentId,
-    }).sort({ createdAt: -1 });
-    res.json(notifications);
-  } catch (err) {
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-}; */
+
 const getMyNotifications = async (req, res) => {
   try {
     
